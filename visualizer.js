@@ -57,7 +57,7 @@ function draw() {
     ctx.font = '14px Arial';
     ctx.fillText(`Time: ${frame.t.toFixed(2)}s`, 20, 30);
     
-    // --- UI BARS: TARGET SHIP STATS ---
+// --- UI BARS: TARGET SHIP STATS ---
     const barWidth = 120;
     const barX = canvas.width - 250;
     
@@ -68,12 +68,36 @@ function draw() {
 
     let tY = 25; // Adjusted starting Y to pad inside the box
 
+    // --- DETERMINE ACTIVE WEAPON TYPES ---
+    let hasBallistic = false;
+    let hasEnergy = false;
+    [...(frame.w1 || []), ...(frame.w2 || [])].forEach(w => {
+        if (w[0] === 0) hasBallistic = true;
+        if (w[0] === 1) hasEnergy = true; 
+    });
+
     // SHIELD BAR
     const globalAvgS = (frame.s[0] + frame.s[1] + frame.s[2] + frame.s[3]) / 4.0;
     
     if (shieldFaces === 4) {
         ctx.fillStyle = '#cccccc'; 
-        ctx.fillText(`Shields (Quad): 🛡️ ${frame.tshp}`, barX, tY);
+        let shdTextQuad = `Shields (Quad):`;
+        ctx.fillText(shdTextQuad, barX, tY);
+        let shdOffsetQuad = ctx.measureText(shdTextQuad).width + 5;
+        
+        // Conditional Absorption Text for Ballistics
+        if (hasBallistic) {
+            ctx.fillText(`(`, barX + shdOffsetQuad, tY);
+            shdOffsetQuad += ctx.measureText(`(`).width;
+            ctx.fillStyle = '#ffaa00'; // Ballistic Orange
+            ctx.fillText(`${frame.sabp}%`, barX + shdOffsetQuad, tY);
+            shdOffsetQuad += ctx.measureText(`${frame.sabp}%`).width;
+            ctx.fillStyle = '#cccccc';
+            ctx.fillText(`) `, barX + shdOffsetQuad, tY);
+            shdOffsetQuad += ctx.measureText(`) `).width;
+        }
+        
+        ctx.fillText(`🛡️ ${frame.tshp}`, barX + shdOffsetQuad, tY);
         tY += 5;
         
         const fNames = ['Front', 'Right', 'Rear', 'Left'];
@@ -101,47 +125,83 @@ function draw() {
         tY += 15;
         ctx.font = '14px Arial'; 
     } else {
+        // INLINE S2 SHIELDS
         ctx.fillStyle = '#cccccc'; 
-        ctx.fillText(`Shield: ${(globalAvgS * 100).toFixed(1)}% 🛡️ ${frame.tshp}`, barX, tY);
-        ctx.fillStyle = '#333333'; ctx.fillRect(barX, tY + 5, barWidth, 8);
-        ctx.fillStyle = '#00c8ff'; ctx.fillRect(barX, tY + 5, barWidth * globalAvgS, 8);
+        let shdText = `Shield:`;
+        ctx.fillText(shdText, barX, tY);
+        let shdOffset = ctx.measureText(shdText).width + 5;
+        
+        // Conditional Absorption Text for Ballistics
+        if (hasBallistic) {
+            ctx.fillText(`(`, barX + shdOffset, tY);
+            shdOffset += ctx.measureText(`(`).width;
+            ctx.fillStyle = '#ffaa00'; // Ballistic Orange
+            ctx.fillText(`${frame.sabp}%`, barX + shdOffset, tY);
+            shdOffset += ctx.measureText(`${frame.sabp}%`).width;
+            ctx.fillStyle = '#cccccc';
+            ctx.fillText(`) `, barX + shdOffset, tY);
+            shdOffset += ctx.measureText(`) `).width;
+        }
+        
+        ctx.fillText(`🛡️ ${frame.tshp}`, barX + shdOffset, tY);
+
+        tY += 18;
+        ctx.fillStyle = '#333333'; ctx.fillRect(barX, tY - 9, barWidth, 8);
+        ctx.fillStyle = '#00c8ff'; ctx.fillRect(barX, tY - 9, barWidth * globalAvgS, 8);
         
         if (globalAvgS < 1.0 && frame.sr[0] < 1.0) {
-            ctx.fillStyle = '#555555'; ctx.fillRect(barX, tY + 14, barWidth, 3);
-            ctx.fillStyle = '#00ffcc'; ctx.fillRect(barX, tY + 14, barWidth * frame.sr[0], 3);
+            ctx.fillStyle = '#555555'; ctx.fillRect(barX, tY + 1, barWidth, 3);
+            ctx.fillStyle = '#00ffcc'; ctx.fillRect(barX, tY + 1, barWidth * frame.sr[0], 3);
         }
-        tY += 20;
+        
+        ctx.fillStyle = '#aaaaaa';
+        ctx.fillText(`${(globalAvgS * 100).toFixed(1)}%`, barX + barWidth + 10, tY);
+        tY += 15;
     }
 
-    // ARMOR BAR WITH DYNAMIC COLORS & EMOJI
+    // ARMOR BAR WITH CONDITIONAL DYNAMIC COLORS & EMOJI
     tY += 30;
     ctx.fillStyle = '#cccccc'; 
-    ctx.fillText(`Armor: ${(frame.a * 100).toFixed(1)}% `, barX, tY);
+    let armorText = `Armor: ${(frame.a * 100).toFixed(1)}% `;
+    ctx.fillText(armorText, barX, tY);
+    let armorTextWidth = ctx.measureText(armorText).width;
     
-    let armorTextWidth = ctx.measureText(`Armor: ${(frame.a * 100).toFixed(1)}% `).width;
-    ctx.fillStyle = '#ffaa00'; // Orange for physical
-    ctx.fillText(`(${frame.atp}`, barX + armorTextWidth, tY);
-    let physWidth = ctx.measureText(`(${frame.atp}`).width;
-    
-    ctx.fillStyle = '#cccccc';
-    ctx.fillText(` / `, barX + armorTextWidth + physWidth, tY);
-    let sepWidth = ctx.measureText(` / `).width;
-    
-    ctx.fillStyle = '#ff4444'; // Teal for energy
-    ctx.fillText(`${frame.ate}) `, barX + armorTextWidth + physWidth + sepWidth, tY);
-    let engWidth = ctx.measureText(`${frame.ate}) `).width;
+    if (hasBallistic || hasEnergy) {
+        ctx.fillText(`(`, barX + armorTextWidth, tY);
+        armorTextWidth += ctx.measureText(`(`).width;
+        
+        if (hasBallistic) {
+            ctx.fillStyle = '#ffaa00'; // Orange for physical
+            ctx.fillText(`${frame.atp}`, barX + armorTextWidth, tY);
+            armorTextWidth += ctx.measureText(`${frame.atp}`).width;
+        }
+        if (hasBallistic && hasEnergy) {
+            ctx.fillStyle = '#cccccc';
+            ctx.fillText(` / `, barX + armorTextWidth, tY);
+            armorTextWidth += ctx.measureText(` / `).width;
+        }
+        if (hasEnergy) {
+            ctx.fillStyle = '#ff4444'; // Red for energy
+            ctx.fillText(`${frame.ate}`, barX + armorTextWidth, tY);
+            armorTextWidth += ctx.measureText(`${frame.ate}`).width;
+        }
+        
+        ctx.fillStyle = '#cccccc';
+        ctx.fillText(`) `, barX + armorTextWidth, tY);
+        armorTextWidth += ctx.measureText(`) `).width;
+    }
     
     ctx.fillStyle = '#ffaa00'; // Match armor bar color
-    ctx.fillText(`🧡 ${frame.ahp}`, barX + armorTextWidth + physWidth + sepWidth + engWidth, tY);
+    ctx.fillText(`🧡 ${frame.ahp}`, barX + armorTextWidth, tY);
 
     ctx.fillStyle = '#333333'; ctx.fillRect(barX, tY + 5, barWidth, 8);
     ctx.fillStyle = '#ffaa00'; ctx.fillRect(barX, tY + 5, barWidth * frame.a, 8);
 
-    // HULL HP BAR WITH EMOJI
+    // HULL HP BAR WITH GREEN COLOR & EMOJI
     tY += 30;
-    ctx.fillStyle = '#cccccc'; ctx.fillText(`Hull: ${(frame.h * 100).toFixed(1)}% 🤍 ${frame.hhp}`, barX, tY);
+    ctx.fillStyle = '#cccccc'; ctx.fillText(`Hull: ${(frame.h * 100).toFixed(1)}% 💚 ${frame.hhp}`, barX, tY);
     ctx.fillStyle = '#333333'; ctx.fillRect(barX, tY + 5, barWidth, 8);
-    ctx.fillStyle = '#aaaaaa'; ctx.fillRect(barX, tY + 5, barWidth * frame.h, 8);
+    ctx.fillStyle = '#00ff00'; ctx.fillRect(barX, tY + 5, barWidth * frame.h, 8);
 
     // POWER PLANT BAR WITH TEAL COLOR & EMOJI
     tY += 30;
@@ -256,7 +316,7 @@ function draw() {
         ctx.arc(f.x, f.y, (1 - f.life) * 15, 0, Math.PI * 2); 
         let alpha = Math.max(0, f.life);
         if (f.type === 2) ctx.fillStyle = `rgba(187, 0, 255, ${alpha})`; 
-        else if (f.type === 1) ctx.fillStyle = `rgba(0, 255, 255, ${alpha})`; 
+        else if (f.type === 1) ctx.fillStyle = `rgba(255, 68, 68, ${alpha})`; 
         else ctx.fillStyle = `rgba(255, 170, 0, ${alpha})`; 
         ctx.fill();
     }
@@ -328,7 +388,7 @@ function draw() {
             ctx.fillRect(startX + 25, startY - 8, Math.min(heatPct, 100) || 0, 8);
             ctx.fillStyle = isOverheated ? '#ff0000' : '#ffffff';
             const heatStatus = isOverheated ? '🔥🔥🔥' : `🔥: ${heatPct.toFixed(1)}%`;
-            ctx.fillText(`${heatStatus} | Ammo: ${totalAmmo}`, startX + 135, startY);
+            ctx.fillText(`${heatStatus} | Ammo: ${ammoFired} / ${totalAmmo}`, startX + 135, startY);
         }
         startY += 30;
     });
@@ -363,7 +423,7 @@ function draw() {
                 ctx.fillRect(startX2 + 25, startY2 - 8, Math.min(heatPct, 100) || 0, 8);
                 ctx.fillStyle = isOverheated ? '#ff0000' : '#ffffff';
                 const heatStatus = isOverheated ? '🔥🔥🔥' : `🔥: ${heatPct.toFixed(1)}%`;
-                ctx.fillText(`${heatStatus} | Ammo: ${totalAmmo}`, startX2 + 135, startY2);
+                ctx.fillText(`${heatStatus} | Ammo: ${ammoFired} / ${totalAmmo}`, startX2 + 135, startY2);
             }
             startY2 += 30; 
         });

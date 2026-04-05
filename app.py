@@ -529,7 +529,8 @@ if __name__ == '__main__':
                 vis_weapons_2 = [Weapon(db.weapons[w], a2_ammo_mod, a2_regen_mod) for w in selected_weapons_2] if t3_attacker_2 != "None" else []
                 
                 with st.spinner("Rendering Physics..."):
-                    frames, final_ttk, death_reason = simulate_visual_fight(
+                    # Unpack the 4 variables now
+                    frames, final_ttk, death_reason, combat_log = simulate_visual_fight(
                         vis_weapons_1, vis_weapons_2, vis_target, 
                         engagement_distance=t3_dist, 
                         trigger_1=t3_trigger_1,
@@ -554,17 +555,13 @@ if __name__ == '__main__':
                         with open("visualizer.js", "r", encoding="utf-8") as f_js:
                             js_logic = f_js.read()
                             
-                        # --- NEW: LOAD CUSTOM IMAGES ---
-                        # Define the path to your art folder safely
+                        # Load custom images safely
                         art_folder = os.path.join("Art", "Ship Art")
-                        
-                        # Load the images using the new folder path
                         bg_img = get_base64_image(os.path.join(art_folder, "background.jpg"))
                         tgt_img = get_base64_image(os.path.join(art_folder, "target_ship.png"))
                         a1_img = get_base64_image(os.path.join(art_folder, "attacker1.png"))
                         a2_img = get_base64_image(os.path.join(art_folder, "attacker2.png"))
                             
-                        # 2. Inject Dynamic Python Data into a specific object
                         data_script = f"""
                         <script>
                             const SIM_DATA = {{
@@ -581,14 +578,20 @@ if __name__ == '__main__':
                         </script>
                         """
                         
-                        # 3. Wrap logic in script tags
                         logic_script = f"<script>\n{js_logic}\n</script>"
-                        
-                        # 4. Assemble
                         final_html = html_template.replace("__CANVAS_W__", str(canvas_w)) \
                                                   .replace("__DATA_INJECTION__", data_script) \
                                                   .replace("__JS_INJECTION__", logic_script)
                                                   
                         components.html(final_html, height=650, scrolling=True)
+
+                        # --- NEW: RENDER COMBAT TELEMETRY LOG ---
+                        st.divider()
+                        st.subheader("📡 Combat Telemetry Log")
+                        st.markdown("*(Real-time mathematical milestones tracking deflection, penetration, and component damage)*")
+                        
+                        for entry in combat_log:
+                            st.markdown(f"<span style='color: {entry['color']}; font-family: monospace; font-size: 1rem;'><b>[{entry['t']:.2f}s]</b> - {entry['msg']}</span>", unsafe_allow_html=True)
+                            
                     except FileNotFoundError as e:
-                        st.error(f"Error loading visualizer files: Ensure 'visualizer.html' and 'visualizer.js' are in the same directory. ({e})")
+                        st.error(f"Error loading visualizer files: {e}")

@@ -227,6 +227,10 @@ def simulate_visual_fight(attacker_1_weapons, attacker_2_weapons, target_ship, e
     active_projectiles = []
     frames = []
     
+    # --- NEW: COMBAT TELEMETRY LOG ---
+    combat_log = []
+    log_flags = {"first_hit": False, "shield_down": False, "armor_breached": False, "pp_hit": False}
+
     max_hull_hp = target_ship.hull_parts['body']['hp']
     if max_hull_hp <= 0: max_hull_hp = 1000.0
     
@@ -261,9 +265,33 @@ def simulate_visual_fight(attacker_1_weapons, attacker_2_weapons, target_ship, e
         for proj in active_projectiles:
             if proj.update(dt):
                 atk_ang = angle_1 if proj.owner == 1 else angle_2
+                
+                # --- NEW: Track pre-hit stats for the log ---
+                pre_armor = target_ship.armor_hp
+                pre_pp = target_ship.pp_hp
+                pre_shield = target_ship.get_current_shield_hp()
+                
                 target_ship.take_hit(proj.weapon, attack_angle=atk_ang)
                 p_type = 2 if proj.is_distortion else (1 if proj.is_energy else 0)
                 impacts.append([round(proj.x_offset, 1), p_type, proj.owner])
+                
+                # --- NEW: POPULATE TELEMETRY LOG ---
+                if not log_flags["first_hit"] and pre_shield == target_ship.max_total_shield_hp:
+                    combat_log.append({"t": time_elapsed, "msg": f"First impact detected on {atk_ang} shield face.", "color": "#00c8ff"})
+                    log_flags["first_hit"] = True
+                    
+                if not log_flags["shield_down"] and target_ship.get_current_shield_hp() <= 0.1 and pre_shield > 0.1:
+                    combat_log.append({"t": time_elapsed, "msg": f"WARNING: {atk_ang} Shield face collapsed!", "color": "#ffaa00"})
+                    log_flags["shield_down"] = True
+                    
+                if not log_flags["armor_breached"] and target_ship.armor_hp < pre_armor:
+                    combat_log.append({"t": time_elapsed, "msg": f"Armor Deflection overcome. Hull taking physical damage.", "color": "#ffaa00"})
+                    log_flags["armor_breached"] = True
+                    
+                if not log_flags["pp_hit"] and target_ship.pp_hp < pre_pp:
+                    combat_log.append({"t": time_elapsed, "msg": f"CRITICAL: Armor penetrated. Power Plant taking direct damage!", "color": "#ff4444"})
+                    log_flags["pp_hit"] = True
+                    
             else:
                 surviving_projectiles.append(proj)
         active_projectiles = surviving_projectiles
@@ -334,6 +362,8 @@ def simulate_visual_fight(attacker_1_weapons, attacker_2_weapons, target_ship, e
             "a": round(max(0, arm_pct), 3),
             "atp": round(cur_thresh_phys, 1),
             "ate": round(cur_thresh_engy, 1),
+            "sabp": round((target_ship.shield_absorp_min['ballistic'] + (target_ship.shield_absorp_max['ballistic'] - target_ship.shield_absorp_min['ballistic']) * (sum(face_pcts)/4.0)) * 100, 1),
+            "sabd": round((target_ship.shield_absorp_min['distortion'] + (target_ship.shield_absorp_max['distortion'] - target_ship.shield_absorp_min['distortion']) * (sum(face_pcts)/4.0)) * 100, 1),
             "h": round(max(0, hull_pct), 3),
             "pp": round(max(0, pp_pct), 3),
             "pdh": round(max(0, target_ship.pp_dist_hp / target_ship.max_pp_dist_hp), 3),
@@ -354,4 +384,4 @@ def simulate_visual_fight(attacker_1_weapons, attacker_2_weapons, target_ship, e
         if ballistics and all(w.total_ammo <= 0 for w in ballistics) and not any(w.is_energy for w in all_weapons) and not active_projectiles:
              break
              
-    return frames, time_elapsed, target_ship.death_reason
+    return frames, time_elapsed, target_ship.death_reason, combat_log
