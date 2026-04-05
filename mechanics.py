@@ -529,6 +529,7 @@ class AttackerFCS:
                 down_faces = [f for f, hp in self.target.shield_hp.items() if hp <= 0.1]
                 max_time_since_hit = max([self.target.time_since_last_hit[f] for f in down_faces]) if down_faces else 0.0
                 
+                # If the shield is about to regen, panic fire to keep it down
                 if max_time_since_hit >= (self.assumed_delay - self.flight_time - 0.1):
                     cap_pcts = [w.current_ammo / w.cap_max for w in self.weapons if w.is_energy and w.cap_max > 0]
                     heat_pcts = [(w.current_heat / w.max_heat) for w in self.weapons if not w.is_energy and w.max_heat > 0]
@@ -546,7 +547,8 @@ class AttackerFCS:
                     self.is_firing_burst = True
                     return (True, True) 
                 else:
-                    return (False, False) 
+                    # FIX: Keep firing at the hull! The Weapon class will handle its own empty/recharge lockouts automatically.
+                    return (True, False) 
             else:
                 return (True, False)
 
@@ -555,9 +557,11 @@ class AttackerFCS:
             if shield_is_down:
                 down_faces = [f for f, hp in self.target.shield_hp.items() if hp <= 0.1]
                 max_time_since_hit = max([self.target.time_since_last_hit[f] for f in down_faces]) if down_faces else 0.0
+                # If shield about to regen, force an override tap
                 if max_time_since_hit >= (self.target.shield_down_delay - self.flight_time - 0.05):
                     return (True, True)
-                return (False, False)
+                # FIX: Keep firing at the hull!
+                return (True, False)
             return (True, False)
             
         return (True, False)
