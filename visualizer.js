@@ -127,7 +127,7 @@ function draw() {
     ctx.fillText(` / `, barX + armorTextWidth + physWidth, tY);
     let sepWidth = ctx.measureText(` / `).width;
     
-    ctx.fillStyle = '#00ffff'; // Teal for energy
+    ctx.fillStyle = '#ff4444'; // Teal for energy
     ctx.fillText(`${frame.ate}) `, barX + armorTextWidth + physWidth + sepWidth, tY);
     let engWidth = ctx.measureText(`${frame.ate}) `).width;
     
@@ -287,7 +287,7 @@ function draw() {
         const currentY = originY + (targetDestY - originY) * travelPct;
         
         if (p_type === 2) ctx.fillStyle = '#bb00ff'; 
-        else if (p_type === 1) ctx.fillStyle = '#00ffff'; 
+        else if (p_type === 1) ctx.fillStyle = '#ff4444'; 
         else ctx.fillStyle = '#ffaa00'; 
         
         const angle = Math.atan2(targetDestY - originY, targetDestX - originX);
@@ -318,7 +318,7 @@ function draw() {
         if (isEnergy) {
             const currentAmmo = wpn[1], maxAmmo = wpn[2], isRecharging = wpn[3];
             ctx.fillStyle = '#333333'; ctx.fillRect(startX + 25, startY - 8, 100, 8);
-            ctx.fillStyle = isRecharging ? '#555555' : '#00ffff';
+            ctx.fillStyle = isRecharging ? '#555555' : '#ff4444';
             ctx.fillRect(startX + 25, startY - 8, (currentAmmo / maxAmmo) * 100, 8);
             ctx.fillStyle = '#ffffff'; ctx.fillText(`${currentAmmo.toFixed(0)} / ${maxAmmo}`, startX + 135, startY);
         } else {
@@ -335,7 +335,7 @@ function draw() {
     
     // --- WEAPON HUD (ATTACKER 2) ---
     if (hasAttacker2) {
-        let startX2 = canvas.width - 320;
+        let startX2 = canvas.width - 290;
         let startY2 = canvas.height - (frame.w2.length * 30) - 10;
         
         // A2 HUD Background
