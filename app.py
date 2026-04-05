@@ -287,20 +287,23 @@ if __name__ == '__main__':
                     generate_discord_copy_button(top_10_df.drop(columns=["TTK Float"]), "📋 Copy Top 10 to Discord")
                     st.dataframe(top_10_df.drop(columns=["TTK Float"]), use_container_width=True, hide_index=True)
 
-                    # --- NEW: SAVE TOURNAMENT WINNER TO SESSION STATE ---
+                    # --- NEW: SAVE TOP 10 TOURNAMENT RESULTS TO SESSION STATE ---
                     if not top_10_df.empty:
-                        best_row = top_10_df.iloc[0]
+                        top_loadouts_data = []
+                        # Iterate through the top 10 to save their raw data
+                        for idx, row in top_10_df.iterrows():
+                            # Safety check to ensure we don't go out of bounds of the results list
+                            if idx < len(results): 
+                                top_loadouts_data.append({
+                                    "rank": idx + 1,
+                                    "attacker": t1_attacker,
+                                    "target": t1_target,
+                                    "loadout": results[idx]['loadout'], # Raw weapon list
+                                    "ttk": row['TTK'],
+                                    "desc": row['Loadout'] # Pretty printed string
+                                })
                         
-                        # We need the raw weapon list, not the pretty string.
-                        # We can grab it from the original results list.
-                        best_raw_loadout = results[0]['loadout']
-                        
-                        st.session_state.tournament_winner = {
-                            "attacker": t1_attacker,
-                            "target": t1_target,
-                            "loadout": best_raw_loadout,
-                            "ttk": best_row['TTK']
-                        }
+                        st.session_state.tournament_results = top_loadouts_data
                     
                     st.subheader("🏆 Top Loadouts (Velocity Matched < 60 m/s)")
                     matched_df = df[df["Speed Float"] < 60.0]
@@ -474,26 +477,37 @@ if __name__ == '__main__':
             # --- ATTACKER 1 (LEAD) ---
             st.markdown("### 🟢 Attacker 1 (Lead)")
             
-            # --- NEW: TOURNAMENT HANDOFF LOGIC ---
-            if 'tournament_winner' in st.session_state:
-                win_data = st.session_state.tournament_winner
-                st.info(f"🏆 Recent Tournament Winner: **{win_data['attacker']}** ({win_data['ttk']})")
+            # --- NEW: TOURNAMENT HANDOFF LOGIC (TOP 10) ---
+            if 'tournament_results' in st.session_state and st.session_state.tournament_results:
+                tourney_data = st.session_state.tournament_results
+                st.info(f"🏆 Recent Tournament: **{tourney_data[0]['attacker']}** vs **{tourney_data[0]['target']}**")
                 
-                def load_winner_callback():
+                # Create a dictionary to map the dropdown strings to the actual data dictionaries
+                dropdown_options = {f"Rank {d['rank']}: {d['desc']} ({d['ttk']})": d for d in tourney_data}
+                
+                # Render the dropdown
+                selected_tourney_string = st.selectbox(
+                    "Select a Loadout to Visualize:", 
+                    list(dropdown_options.keys()), 
+                    key="t3_tourney_select"
+                )
+                
+                def load_selected_callback():
+                    # Grab the data tied to the user's current dropdown selection
+                    sel_data = dropdown_options[st.session_state.t3_tourney_select]
+                    
                     # Force the UI to match the winning ship
-                    st.session_state['t3_atk1'] = win_data['attacker']
-                    st.session_state['t3_tgt'] = win_data['target']
+                    st.session_state['t3_atk1'] = sel_data['attacker']
+                    st.session_state['t3_tgt'] = sel_data['target']
                     st.session_state['t3_frc1'] = False # Disable forced identical groups
                     
                     # Map the winning loadout back into the individual slot keys
-                    hp_list = db.ship_configs[win_data['attacker']]['hardpoints']
+                    hp_list = db.ship_configs[sel_data['attacker']]['hardpoints']
                     for i, hp_size in enumerate(hp_list):
-                        if i < len(win_data['loadout']):
-                            # We must match the exact string name used in the selectbox
-                            winning_weapon = win_data['loadout'][i]
-                            st.session_state[f"vis_hp1_{i}"] = winning_weapon
+                        if i < len(sel_data['loadout']):
+                            st.session_state[f"vis_hp1_{i}"] = sel_data['loadout'][i]
 
-                st.button("⏬ Auto-Load Winning Loadout", on_click=load_winner_callback, type="primary", use_container_width=True)
+                st.button("⏬ Auto-Load Selected Loadout", on_click=load_selected_callback, type="primary", use_container_width=True)
             # --- END HANDOFF LOGIC ---
 
             t3_attacker_1 = st.selectbox("Ship", attacker_options, index=attacker_options.index("F7A Hornet Mk II") if "F7A Hornet Mk II" in attacker_options else 0, key="t3_atk1")
