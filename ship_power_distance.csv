@@ -1,0 +1,212 @@
+﻿Ship_Name_PP_Key,Default_PP_Component,PP_Comp_Size,Ship_Length,Location_Distance_From_Nose,Location Comment
+100i,PowerBolt,1,19,15.35,Rear wall of main cabin
+125a,Regulus,1,19,15.35,Rear wall of main cabin
+135c,Fortitude,1,19,15.35,Rear wall of main cabin
+300i,PowerBolt,1,27,,
+315p,SonicLite,1,27,,
+325a,Regulus,1,27,,
+350r,SunFlare,1,27,,
+400i,Sedulity,2,56,,Starboard side of cargo bay
+600i,Durango,3,91.5,,
+600i Executive Edition,Durango,3,91.5,,
+600i Touring,Durango,3,91.5,,
+85X Limited,PowerBolt,1,13,,
+890 Jump,Stellate,4,210,,
+A1 Spirit,UltraFlux,2,47.5,,Rear room of the ship Port side
+A2 Hercules Starlifter,SuperDrive,3,94,,
+Apollo Medivac,FullForce,2,65,,Port and Starboard wall of the corridor behind cockpit
+Apollo Triage,FullForce,2,65,,Port and Starboard wall of the corridor behind cockpit
+Ares Star Fighter Inferno,Maelstrom,2,27,16.54,Bottom of the ship Port and Starboard of the centreline under the main thrusters
+Ares Star Fighter Ion,Maelstrom,2,27,16.54,Bottom of the ship Port and Starboard of the centreline under the main thrusters
+Arrow,Regulus,1,16,7.5,
+Asgard,Maelstrom,2,48.7,,Port and starboard wall of lower room
+Aurora CL,Roughneck,1,18,,Top of the ship on the centerline
+Aurora ES,ZapJet,1,18,,Top of the ship on the centerline
+Aurora LN,Charger,1,18,,Top of the ship on the centerline
+Aurora LX,LumaCore,1,18,,Top of the ship on the centerline
+Aurora MR,Roughneck,1,18,,Top of the ship on the centerline
+Aurora Mk II,PowerBolt,1,27.5,,Top of the ship on the centerline
+Avenger Stalker,PowerBolt,1,22.5,,
+Avenger Titan,Endurance,1,22.5,,
+Avenger Titan Renegade,Endurance,1,22.5,,
+Avenger Warlock,Regulus,1,22.5,,
+Ballista,Radix,0,17,,
+Ballista Dunestalker,Radix,0,17,,
+Ballista Snowblind,Radix,0,17,,
+Blade,Charger,1,16.5,,
+Buccaneer,JS-300,1,15,7,
+C1 Spirit,UltraFlux,2,47.5,,Rear room of the ship Port side
+C2 Hercules Starlifter,Ginzel,3,94,,
+C8 Pisces,Regulus,1,13,,
+C8R Pisces Rescue,Regulus,1,13,,
+C8X Pisces Expedition,Regulus,1,13,,
+Carrack,Reliance,3,126.5,,
+Carrack Expedition,Reliance,3,126.5,,
+Caterpillar,Ginzel,3,111.5,,
+Caterpillar Pirate,Ginzel,3,111.5,,
+Centurion,Defiant,0,17,,Starboard side of main cabin next to Driver seat.
+Centurion,OverDrive,1,17,,Starboard side of main cabin next to Gunner seat.
+Clipper,ZapJet,1,26.5,,Middle floor rear room Starboard wall
+Constellation Andromeda,DayBreak,2,61,,
+Constellation Aquila,DayBreak,2,61,,
+Constellation Phoenix,DayBreak,2,61,,
+Constellation Phoenix Emerald,DayBreak,2,61,,
+Constellation Taurus,Diligence,2,69,,
+Corsair,DayBreak,2,55,,"Port wall of the circular room in the ship, port wall of the cargo bay"
+CSV-SM,Radix,0,5.44,,Starboard side of vehicle between the wheels
+Cutlass Black,DayBreak,2,36,,
+Cutlass Blue,TurboDrive,2,36,,
+Cutlass Red,Diligence,2,36,,
+Cutlass Steel,TurboDrive,2,36,,
+Cutter,LightBlossom,1,20,,Starboard side of cargo bay
+Cutter Rambler,LightBlossom,1,20,,Starboard side of cargo bay
+Cutter Scout,Exogen,2,20,,Starboard side of cargo bay
+Cyclone,Radix,0,6,,
+Cyclone AA,Radix,0,6,,
+Cyclone MT,Radix,0,6,,
+Cyclone RC,Radix,0,6,,
+Cyclone RN,Radix,0,6,,
+Cyclone TR,Radix,0,6,,
+Defender,IonBurst,1,25.5,,
+Dragonfly,Radix,0,6,,
+Dragonfly Star Kitten,Radix,0,6,,
+Dragonfly YellowJacket,Radix,0,6,,
+Eclipse,DeltaMax,1,20.5,,
+F7A Hornet Mk I,TurboDrive,2,22.5,,
+F7A Hornet Mk II,Maelstrom,2,22.5,12.5,
+F7C Hornet Mk I,PowerBolt,1,22.5,,
+F7C Hornet Mk II,Regulus,1,22.5,12.5,
+F7C Hornet Wildfire Mk I,Roughneck,1,22.5,,
+F7C-M Hornet Heartseeker Mk I,OverDrive,1,25.5,,
+F7C-M Hornet Heartseeker Mk II,Maelstrom,2,24,12.5,
+F7C-M Super Hornet Mk I,Regulus,1,25.5,,
+F7C-M Super Hornet Mk II,Maelstrom,2,24,12.5,
+F7C-R Hornet Tracker Mk I,LumaCore,1,22.5,,
+F7C-R Hornet Tracker Mk II,Regulus,1,22.2,12.5,
+F7C-S Hornet Ghost Mk I,Slipstream,1,22.5,,
+F7C-S Hornet Ghost Mk II,SonicLite,1,22.2,12.5,
+F8A Lightning,Maelstrom,2,26,,
+F8C Lightning,Maelstrom,2,26,16.25,
+Fortune,Trommel,2,26,,Underneath ship in front of cargo elevator
+Freelancer,DayBreak,2,38,,Port side of cargo hold
+Freelancer DUR,DayBreak,2,38,,Port side of cargo hold
+Freelancer MAX,DayBreak,2,38,,Port side of cargo hold
+Freelancer MIS,Maelstrom,2,38,,Port side of cargo hold
+Fury,Roughneck,1,8,,
+Fury LX,Roughneck,1,7,,
+Fury MX,Roughneck,1,7,,
+Gladiator,Maelstrom,2,22.5,,
+Gladius,Regulus,1,20,12.75,Top of ship on the centreline
+Gladius Pirate,Charger,1,20,12.75,Top of ship on the centreline
+Gladius Valiant,Regulus,1,20,12.75,Top of ship on the centreline
+Glaive,Fierell Cascade,1,31,,
+Golem,Fortitude,1,15.5,,Remove rear Ore container and is on the starboard side leg
+Golem Ox,Fortitude,1,15.5,,On the inside of the rear starboard side leg
+Guardian,OverDrive,1,25,9.75,Middle room of ship Port and Starboard side
+Guardian MX,Maelstrom,2,25,9.75,Middle room of ship Port and Starboard side
+Guardian QI,Regulus,1,25,9.75,Middle room of ship Port and Starboard side
+Hammerhead,SuperDrive,3,120,,
+Hawk,Regulus,1,17,6.5,
+Herald,Slipstream,1,23.5,,
+Hermes,FullForce,2,65,,Port and Starboard wall of the corridor behind cockpit
+HoverQuad,Radix,0,4.5,,Aft of vehicle
+Hull A,IonBurst,1,17,,Starboard side of the room behind the cockpit
+Hull C,Centurion,3,90,,
+Hurricane,Regulus,1,22,,
+Idris M,Idris PowerPlant,4,240,,
+Idris P,Idris PowerPlant,4,240,,
+Intrepid,LightBlossom,1,23.2,,Aft wall of cargo room
+Khartu-al,DynaFlux,1,15,,
+L-21 Wolf,LightBlossom,1,21.5,9.25,Top of ship in front of cockpit
+L-22 Alpha Wolf,LightBlossom,1,21.5,9.25,Top of ship in front of cockpit
+Lynx,Radix,0,7.75,,Main cabin next to the gun rack
+M2 Hercules Starlifter,SuperDrive,3,94,,
+M50 Interceptor,LumaCore,1,11.5,,
+Mantis,Regulus,1,30,,Starboard wall of main cabin
+MDC,Defiant,0,7,,Port side of main cabin
+Mercury Star Runner,Diligence,2,56,,Port wall of Engineering room off Cargo Bay
+Meteor,Regulus,1,30,,Starboard wall of main cabin
+Mole,Ginzel,3,45,,
+Mole Carbon,Ginzel,3,45,,
+Mole Talus,Ginzel,3,45,,
+Moth,Ginzel,3,45,,
+MPUV Cargo,IonWave,0,9.5,,
+MPUV Personnel,IonWave,0,9.25,,
+MPUV Tractor,IonWave,0,9,,Top of ship near starboard leg
+MTC,Defiant,0,7,,Port side of main cabin
+Mule,Steadfast,0,4.2,,Aft of ship above cargo bay
+Mustang Alpha,ZapJet,1,21.5,,
+Mustang Beta,Roughneck,1,21.5,,
+Mustang Delta,OverDrive,1,21.5,,
+Mustang Gamma,LumaCore,1,21.5,,
+Mustang Omega,LumaCore,1,21.5,,
+Nomad,IonBurst,1,27,,In aft room opposite entryway
+Nova,Radix,0,16,,Main cabin behind passenger seat
+Nox,Radix,0,5.5,,
+Nox Kue,Radix,0,5.5,,
+P-52 Merlin,LightBlossom,1,12,,
+P-72 Archimedes,Charger,1,12,,
+P-72 Archimedes Emerald,Charger,1,12,,
+Paladin,Maelstrom,2,53,,Port and Starboard walls of rear top floor room
+Perseus,Centurion,3,100,,
+Polaris,Stellate,4,166,,
+Prospector,Trommel,2,26,,
+Prowler,Eclipse,2,34,,Port of rear cabin top floor
+Prowler Utility,Eclipse,2,34,,Port of rear cabin top floor
+PTV,Radix,0,3,,
+Pulse,Radix,0,3.15,,In front of seat
+Pulse LX,Radix,0,3.15,,In front of seat
+RAFT,Diligence,2,39.5,,Top floor Port and Starboard side of main corridor
+Razor,StarHeart,1,11.5,,
+Razor EX,SonicLite,1,11.5,,
+Razor LX,StarHeart,1,11.5,,
+Reclaimer,Reclaimer PowerPlant,4,155,,
+Redeemer,Centurion,3,51,,
+Reliant Kore,IonBurst,1,14.5,,
+Reliant Mako,IonBurst,1,14.5,,
+Reliant Sen,Fortitude,1,14.5,,
+Reliant Tana,Regulus,1,14.5,,
+Retaliator,Maelstrom,2,71,,Front of the ship in the Port corridor
+ROC,Steadfast,0,6,,
+ROC-DS,Steadfast,0,6.6,,
+Sabre,SonicLite,1,24,16,
+Sabre Comet,SonicLite,1,24,16,
+Sabre Firebird,SonicLite,1,26,,Top of ship Port of the centerline
+Sabre Peregrine,SonicLite,1,26,,Top of ship Port of the centerline
+Sabre Raven,SonicLite,1,24,,Top of ship Port of the centerline
+Salvation,Fortitude,1,14.5,,Port side of ship above Salvage Arm supports
+San'tok.yāi,DynaFlux,1,22,,Bottom of ship Port and Starboard of the centreline
+Scorpius,Regulus,1,24,6.5,Bottom of ship Port and Starboard of the centreline
+Scorpius Antares,Regulus,1,24,6.5,Bottom of ship Port and Starboard of the centreline
+Scythe,Fierell Cascade,1,31,,
+Shiv,DayBreak,2,37.5,,
+Spartan,Defiant,0,17,,Starboard wall behind driver seat
+SRV,Diligence,2,28.5,,Starboard side of Elevator room
+Starfarer,Ginzel,3,101,,
+Starfarer,SuperDrive,3,101,,
+Starfarer Gemini,SuperDrive,3,101,,
+Starlancer Max,LuxCore,2,83,,Top floor rear room Port side
+Starlancer TAC,Centurion,3,83,,
+Stinger,Fortitude,1,35,,
+Storm,Radix,0,10.5,,Aft of vehicle
+Storm AA,Radix,0,10.5,,Aft of vehicle
+STV,Radix,0,4.2,,Fore of the vehicle
+Syulen,LightBlossom,1,25,,Bottom floor next to Suit Locker
+Talon,Slipstream,1,26,3.35,Top of ship behind cockpit
+Talon Shrike,Slipstream,1,26,3.35,Top of ship behind cockpit
+Terrapin,DayBreak,2,19.5,,Aft wall of ship between the bed and the door
+Terrapin Medic,DayBreak,2,20,,Aft wall of ship between the bed and the door
+Ursa,Radix,0,7.75,,
+Ursa Fortuna,Radix,0,7.75,,
+Ursa Medevac,Radix,0,7.75,,Starboard wall of the vehicle next to the Medical terminal
+Valkyrie,Maelstrom,2,48,,
+Vanguard Harbinger,TurboDrive,2,38.5,7.65,Port of ship behind pilot seat
+Vanguard Hoplite,Maelstrom,2,38.5,7.65,Port of ship behind pilot seat
+Vanguard Sentinel,GammaMax,2,38.5,7.65,Port of ship behind pilot seat
+Vanguard Warden,Maelstrom,2,38.5,7.65,Port of ship behind pilot seat
+Vulture,Fortitude,1,33,,Port side of ship in the living area
+X1,Radix,0,5.5,,Starboard side of vehicle
+X1 Force,Radix,0,5.5,,Starboard side of vehicle
+X1 Velocity,Radix,0,5.5,,Top of vehicle
+Zeus Mk II CL,Diligence,2,45.7,,Port and Starboard side of cargo bay
+Zeus Mk II ES,FullForce,2,45.7,,Port and Starboard side of cargo bay

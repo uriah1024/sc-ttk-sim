@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Combat Visualizer</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0e1117;">
+    <div style="background-color: #1e1e24; padding: 15px; border-radius: 8px; font-family: monospace; overflow-x: auto;">
+        <div style="min-width: __CANVAS_W__px;">
+            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 15px;">
+                <button id="btnPlay" style="background: #0088ff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; flex-shrink: 0;">Play / Pause</button>
+                <button id="btnRestart" style="background: #444; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; flex-shrink: 0;">Restart</button>
+                <input type="range" id="timeSlider" min="0" max="100" value="0" style="flex-grow: 1; cursor: pointer;">
+            </div>
+            <canvas id="simCanvas" width="__CANVAS_W__" height="550" style="display: block; margin: 0 auto; background-color: #0d0d12; border: 1px solid #333; border-radius: 4px;"></canvas>
+        </div>
+    </div>
+
+    __DATA_INJECTION__
+    
+    __JS_INJECTION__
+</body>
+</html>

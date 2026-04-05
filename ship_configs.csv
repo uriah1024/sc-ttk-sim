@@ -1,0 +1,200 @@
+﻿Size,Name,Manufacturer,Type,Career,Role,Shield_Count,Ship_Shield_Size,Vital_Nose_Hull_HP,Vital_Body_Hull_HP,Vital_Tail_Hull_HP,Weapon_Size_1,Weapon_Size_2,Weapon_Size_3,Weapon_Size_4,Weapon_Size_5,Weapon_Size_6,Weapon_Size_7,Weapon_Size_8,Weapon_Size_9,Weapon_Size_10,Bespoke_Mount_Size,Max_Ammo_Mod,Max_Regen_Sec_Mod
+1,85X Limited,Origin,Ship,Exploration,Touring,1,1,,900,,2,2,,,,,,,,,,1,1
+1,100i,Origin,Ship,Exploration,Starter / Pathfinder,1,1,,1700,,,,2,,,,,,,,,1,1
+1,125a,Origin,Ship,Combat,Light Fighter,1,1,,1700,,,,2,,,,,,,,,1,1
+1,135c,Origin,Ship,Transporter,Light Freight,1,1,,1700,,,,2,,,,,,,,,1,1
+2,300i,Origin,Ship,Exploration,Luxury Touring,2,1,1900,,1900,,,3,,,,,,,,,1,1
+2,315p,Origin,Ship,Exploration,Pathfinder,2,1,2100,,2100,,,2,,,,,,,,,1,1
+2,325a,Origin,Ship,Combat,Interceptor,2,1,2200,,2200,,,2,1,,,,,,,,1,1
+2,350r,Origin,Ship,Competition,Racing,2,1,700,,700,,,3,,,,,,,,,1,1
+4,400i,Origin,Ship,Exploration,Expedition,1,3,,18000,,,,4,2,,,,,,,,3,1
+5,600i,Origin,Ship,Exploration,Expedition,2,3,45000,45000,45000,,,4,,3,,,,,,,3,1
+5,600i Touring,Origin,Ship,Exploration,Luxury Touring,2,3,45000,45000,45000,,,4,,3,,,,,,,3,1
+6,890 Jump,Origin,Ship,Exploration,Luxury Touring,2,4,,100000,,,,4,4,,,,,,,,4,1
+3,A1 Spirit,Crusader,Ship,Combat,Bomber,1,2,,16500,,,2,4,,,,,,,,,1,1
+5,A2 Hercules Starlifter,Crusader,Ship,Combat,Heavy Bomber,3,3,,65250,,,,,6,8,,,,,,,3,1
+5,Apollo Medivac,RSI,Ship,Support,Medical,4,2,,33000,,,,2,2,,,,,,,,1,1
+5,Apollo Triage,RSI,Ship,Support,Medical,4,2,,30000,,,,2,2,,,,,,,,1,1
+3,Ares Star Fighter Inferno,Crusader,Ship,Combat,Heavy Fighter,2,2,,12000,,,,,,,,1,,,,7,1,1
+3,Ares Star Fighter Ion,Crusader,Ship,Combat,Heavy Fighter,2,2,,12000,,,,,,,,1,,,,7,1,1
+2,Arrow,Anvil,Ship,Combat,Light Fighter,1,1,1950,1950,,2,,2,,,,,,,,,1,1
+4,Asgard,Anvil,Ship,Combat,Dropship,4,2,20000,,20000,,,6,2,,,,,,,,5,1
+2,Aurora CL,RSI,Ship,Transporter,Light Freight,2,1,,3100,,4,,,,,,,,,,,1,1
+2,Aurora ES,RSI,Ship,Multi-Role,Starter / Pathfinder,2,1,,3100,,4,,,,,,,,,,,1,1
+2,Aurora LN,RSI,Ship,Combat,Light Fighter,2,1,,3100,,4,,,,,,,,,,,1,1
+2,Aurora LX,RSI,Ship,Exploration,Pathfinder,2,1,,3100,,4,,,,,,,,,,,1,1
+2,Aurora Mk II,RSI,Ship,Multi-Role,Starter / Light Fighter,2,1,,3000,,,4,,,,,,,,,,1,1
+2,Aurora Mk I SE,RSI,Ship,Combat,Light Fighter,2,1,,3100,,4,,,,,,,,,,,1,1
+2,Aurora MR,RSI,Ship,Combat,Light Fighter,2,1,,3100,,4,,,,,,,,,,,1,1
+2,Avenger Stalker,Aegis,Ship,Combat,Interceptor,2,1,2500,2500,,,,2,1,,,,,,,,1,1
+2,Avenger Titan,Aegis,Ship,Transporter,Light Freight,2,1,2500,2500,,,,2,1,,,,,,,,1,1
+2,Avenger Titan Renegade,Aegis,Ship,Transporter,Light Freight,2,1,2500,2500,,,,2,1,,,,,,,,1,1
+2,Avenger Warlock,Aegis,Ship,Combat,Interdiction,2,1,2500,2500,,,,2,1,,,,,,,,1,1
+4,Ballista,Anvil,Ground Vehicle,Combat,Anti-Air,1,0,,,,,,,,,,,,,,,1,1
+2,Blade,Esperia,Ship,Combat,Light Fighter,2,1,2150,2150,,,2,2,,,,,,,,,1.4,1.1
+2,Buccaneer,Drake,Ship,Combat,Light Fighter,1,1,1950,1950,,2,,2,1,,,,,,,,1,1
+3,C1 Spirit,Crusader,Ship,Transporter,Light Freight,1,2,,16500,,,,4,,,,,,,,,1,1
+5,C2 Hercules Starlifter,Crusader,Ship,Transporter,Heavy Freight,2,3,,,,,,,4,2,,,,,,,3,1
+1,C8 Pisces,Anvil,Ship,Exploration,Pathfinder,1,1,,4500,,2,,,,,,,,,,,1,1
+1,C8R Pisces Rescue,Anvil,Ship,Support,Medical,1,1,,4500,,2,,,,,,,,,,,1,1
+1,C8X Pisces Expedition,Anvil,Ship,Exploration,Pathfinder,1,1,,4500,,4,,,,,,,,,,,1,1
+5,Carrack,Anvil,Ship,Exploration,Expedition,2,3,,70000,,,,,8,,,,,,,,3,1
+5,Caterpillar,Drake,Ship,Transporter,Medium Freight,3,3,,60000,,,,4,4,,,,,,,,3,1
+5,Caterpillar Pirate,Drake,Ship,Transporter,Medium Freight,3,3,,60000,,,,4,4,,,,,,,,3,1
+4,Centurion,Anvil,Ground Vehicle,Combat,Anti-Air,1,0,,,,,,,,,,,,,,,6,1.05
+2,Clipper,Drake,Ship,Exploration,Generalist,2,1,,6000,,,,4,,,,,,,,,1,1
+4,Constellation Andromeda,RSI,Ship,Multi-Role,Medium Freight / Gun Ship,1,3,20000,20000,20000,,,4,,4,,,,,,,1.75,1
+4,Constellation Aquila,RSI,Ship,Exploration,Expedition,1,3,20000,20000,20000,,,2,,4,,,,,,,1.75,1
+4,Constellation Phoenix,RSI,Ship,Exploration,Luxury Touring,1,3,20000,20000,20000,,,4,,4,,,,,,,1.75,1
+4,Constellation Taurus,RSI,Ship,Transporter,Medium Freight,1,3,20000,20000,20000,,,2,,4,,,,,,,1.75,1
+4,Corsair,Drake,Ship,Exploration,Expedition,1,3,,15000,,,6,,4,2,,,,,,,2,1
+1,CSV-SM,Argo,Ground Vehicle,Transporter,Light Freight,1,0,,,,,,,,,,,,,,,1,1
+3,Cutlass Black,Drake,Ship,Multi-Role,Light Freight / Medium Fighter,2,1,,6500,,,,6,,,,,,,,,2,1
+3,Cutlass Blue,Drake,Ship,Combat,Interdiction,2,1,,6500,,,,6,,,,,,,,,2,1
+3,Cutlass Red,Drake,Ship,Support,Medical,2,1,,6600,,,,4,,,,,,,,,2,1
+3,Cutlass Steel,Drake,Ship,Combat,Dropship,2,2,,9400,,,2,6,,,,,,,,,3,1
+2,Cutter,Drake,Ship,Exploration,Starter / Pathfinder,1,1,,6500,,,2,,,,,,,,,,1,1
+2,Cutter Rambler,Drake,Ship,Exploration,Expedition,1,1,,6500,,,2,,,,,,,,,,1,1
+2,Cutter Scout,Drake,Ship,Exploration,Pathfinder,1,1,,6700,,,2,,,,,,,,,,1,1
+1,Cyclone,Tumbril,Ground Vehicle,Combat,Passenger,1,0,,,,,,,,,,,,,,,1,1
+1,Cyclone AA,Tumbril,Ground Vehicle,Combat,Anti-Air,1,0,,,,,,,,,,,,,,,1,1
+1,Cyclone MT,Tumbril,Ground Vehicle,Combat,Anti-Air,1,0,,,,,,,,,,,,,,,1,1
+1,Cyclone RC,Tumbril,Ground Vehicle,Competition,Racing,1,0,,,,,,,,,,,,,,,1,1
+1,Cyclone RN,Tumbril,Ground Vehicle,Exploration,Pathfinder,1,0,,,,,,,,,,,,,,,1,1
+1,Cyclone TR,Tumbril,Ground Vehicle,Combat,Anti-Vehicle,1,0,,,,,,,,,,,,,,,1,1
+2,Defender,Banu,Ship,Combat,Light Fighter,1,2,,3500,,,,4,,,,,,,,,1,1
+1,Dragonfly,Drake,Gravlev,Competition,Racing,1,0,,,,,,,,,,,,,,,1,1
+1,Dragonfly Yellowjacket,Drake,Gravlev,Competition,Racing,1,0,,,,,,,,,,,,,,,1,1
+2,Eclipse,Aegis,Ship,Combat,Stealth Bomber,2,1,10000,10000,,,2,,,,,,,,,,1,1
+2,F7A Hornet Mk I,Anvil,Ship,Combat,Medium Fighter,1,1,,2750,,,2,2,2,,,,,,,,1,1
+2,F7A Hornet Mk II,Anvil,Ship,Combat,Medium Fighter,2,1,3000,3000,1900,,,4,2,,,,,,,,1,1
+2,F7C Hornet Mk I,Anvil,Ship,Combat,Medium Fighter,1,1,,,,,,,2,,,,,,,,1,1
+2,F7C Hornet Mk II,Anvil,Ship,Combat,Medium Fighter,2,1,2850,2850,1900,,2,2,2,,,,,,,,1,1
+2,F7C Hornet Wildfire Mk I,Anvil,Ship,Combat,Medium Fighter,1,1,,2650,,2,,2,1,,,,,,,,1,1
+2,F7C-M Hornet Heartseeker Mk I,Anvil,Ship,Combat,Medium Fighter,1,1,2900,2900,,2,,2,1,,,,,,,,1,1
+2,F7C-M Hornet Heartseeker Mk II,Anvil,Ship,Combat,Medium Fighter,3,1,,3150,,,2,4,2,,,,,,,,1,1
+2,F7C-M Super Hornet Mk I,Anvil,Ship,Combat,Medium Fighter,1,1,2900,2900,,2,2,2,,,,,,,,,1,1
+2,F7C-M Super Hornet Mk II,Anvil,Ship,Combat,Medium Fighter,3,1,,3150,,,,4,2,,,,,,,,1,1
+2,F7C-R Hornet Tracker Mk I,Anvil,Ship,Exploration,Pathfinder,1,1,,,,,,,2,,,,,,,,1,1
+2,F7C-R Hornet Tracker Mk II,Anvil,Ship,Combat,Pathfinder,2,1,2850,2850,1900,,2,,2,,,,,,,,1,1
+2,F7C-S Hornet Ghost Mk I,Anvil,Ship,Combat,Stealth Fighter,1,1,,2550,,2,,2,1,,,,,,,,1,1
+2,F7C-S Hornet Ghost Mk II,Anvil,Ship,Combat,Stealth Fighter,2,1,2750,2750,1900,,2,2,2,,,,,,,,1,1
+2,F8C Lightning,Anvil,Ship,Combat,Heavy Fighter,2,2,,9200,,,4,4,,,,,,,,,1,1
+2,Fortune,MISC,Ship,Industrial,Light Salvage,3,1,15200,,,2,,,,,,,,,,,1,1
+3,Freelancer,MISC,Ship,Transporter,Light Freight,3,2,9500,9500,9500,,,6,,,,,,,,,1,1
+3,Freelancer DUR,MISC,Ship,Exploration,Expedition,3,2,6200,6200,6200,,,6,,,,,,,,,1,1
+3,Freelancer MAX,MISC,Ship,Transporter,Medium Freight,3,2,6200,6200,6200,,,6,,,,,,,,,1,1
+3,Freelancer MIS,MISC,Ship,Combat,Gunship,3,2,6200,6200,6200,,,6,,,,,,,,,1,1
+1,Fury,Mirai,Ship,Combat,Snub Fighter,1,1,,750,,,4,,,,,,,,,,1,1
+1,Fury LX,Mirai,Ship,Competition,Racing,1,1,,400,,,,,,,,,,,,,1,1
+1,Fury MX,Mirai,Ship,Combat,Snub Bomber,1,1,,750,,,,,,,,,,,,,1,1
+2,Gladiator,Anvil,Ship,Combat,Bomber,1,2,,5500,,,,2,2,,,,,,,,2.5,1
+2,Gladius,Aegis,Ship,Combat,Light Fighter,2,1,,2350,,,,3,,,,,,,,,1,1
+2,Gladius Dunlevy,Aegis,Ship,Combat,Light Fighter,2,1,,2350,,,,3,,,,,,,,,1,1
+2,Gladius Pirate,Aegis,Ship,Combat,Light Fighter,2,1,,2350,,,,3,,,,,,,,,1,1
+2,Gladius Valiant,Aegis,Ship,Combat,Light Fighter,2,1,,2350,,,,3,,,,,,,,,1,1
+3,Glaive,Esperia,Ship,Combat,Medium Fighter,2,1,5000,,,2,,,,2,,,,,,"1, 5",2.2,1.5
+2,Golem,Drake,Ship,Industrial,Starter / Light Mining,1,1,,2350,,2,,,,,,,,,,,1,1
+2,Golem OX,Drake,Ship,Industrial,Light Freight,1,1,,2350,,2,,,,,,,,,,,1,1
+2,Guardian,Mirai,Ship,Combat,Heavy Fighter,2,1,,7100,,,,,,2,,,,,,,1,1
+2,Guardian MX,Mirai,Ship,Combat,Heavy Fighter,2,2,,8100,,,,,4,,,,,,,,1,1
+2,Guardian QI,Mirai,Ship,Combat,Interdiction,2,1,,7000,,,,,,2,,,,,,,1,1
+5,Hammerhead,Aegis,Ship,Combat,Heavy Gunship,2,3,80000,80000,,,,,24,,,,,,,,4,1
+2,Hawk,Anvil,Ship,Combat,Light Fighter,2,1,2000,2000,,2,4,,,,,,,,,,1,1
+2,Herald,Drake,Ship,Transporter,Medium Data,2,1,,2100,2100,,2,1,,,,,,,,,1,1
+5,Hermes,RSI,Ship,Transporter,Medium Freight,4,2,,35000,,,,,4,,,,,,,,1,1
+1,HoverQuad,C.O.,Gravlev,Exploration,Passenger,1,0,,,,,,,,,,,,,,,1,1
+2,Hull A,MISC,Ship,Transporter,Light Freight,1,2,7000,7000,3000,2,,,,,,,,,,,1,1
+5,Hull C,MISC,Ship,Transporter,Heavy Freight,4,3,,60000,,,,6,,,,,,,,,1,1
+2,Hurricane,Anvil,Ship,Combat,Heavy Fighter,1,2,7800,7000,,,,4,2,,,,,,,,2.5,1
+6,Idris M,Aegis,Ship,Combat,Frigate,2,4,,3600000,,,,,8,12,,2,,,1,10,6,1.9
+6,Idris P,Aegis,Ship,Combat,Frigate,2,4,,3600000,,,,,8,16,,,,,,10,6,1.9
+2,Intrepid,Crusader,Ship,Starter,Starter / Light Freight,1,1,3300,3300,,,,,1,,,,,,,,1,1
+3,Khartu-al,Aopoa,Ship,Combat,Light Fighter,2,1,,2150,,,,,2,,,,,,,,1,1
+2,L-21 Wolf,Kruger,Ship,Combat,Light Fighter,2,1,,1750,,,,,2,,,,,,,4,1,1
+2,L-22 Alpha Wolf,Kruger,Ship,Combat,Light Fighter,2,1,,1700,,,,,2,,,,,,,4,1,1
+3,Lynx,RSI,Ground Vehicle,Transporter,Luxury Touring,1,0,,,,,,,,,,,,,,,1,1
+5,M2 Hercules Starlifter,Crusader,Ship,Transporter,Heavy Freight,2,3,,58500,,,,,6,2,,,,,,,3,1
+1,M50 Interceptor,Origin,Ship,Competition,Racing,1,1,,400,,,2,,,,,,,,,,1,1
+2,Mantis,RSI,Ship,Combat,Interdiction,2,1,,2650,,,,3,,,,,,,,,1,1
+1,MDC,Greycat,Ground Vehicle,Ground,Anti-Air,1,0,,,,,,,,,,,,,,,1,1
+4,Mercury Star Runner,Crusader,Ship,Transporter,Medium Freight,1,3,14000,,,,,6,,,,,,,,,2,1
+2,Meteor,RSI,Ship,Combat,Medium Fighter,2,1,,2750,,,,4,,2,,,,,,5,1,1
+3,MOLE,Argo,Ship,Industrial,Medium Mining,1,3,45000,45000,,,2,,,,,,,,,,1,1
+3,MOTH,Argo,Ship,Industrial,Medium Salvage,1,3,45000,45000,,,2,,,,,,,,,,1,1
+1,MPUV Cargo,Argo,Ship,Transporter,Light Freight,1,1,2500,2500,,,,,,,,,,,,,1,1
+1,MPUV Personnel,Argo,Ship,Transporter,Passenger,1,1,2500,2500,,,,,,,,,,,,,1,1
+1,MPUV Tractor,Argo,Ship,Transporter,Light Freight,1,1,2500,2500,,,,,,,,,,,,,1,1
+1,MTC,Greycat,Ground Vehicle,Ground,Passenger,1,0,,,,,,,,,,,,,,,1,1
+1,Mule,Drake,Ground Vehicle,Transporter,Light Freight,1,0,,,,,,,,,,,,,,,1,1
+2,Mustang Alpha,C.O.,Ship,Multi-Role,Starter / Light Freight,2,1,1900,1900,,,2,,,,,,,,,,1,1
+2,Mustang Beta,C.O.,Ship,Exploration,Pathfinder,2,1,1900,1900,,,2,,,,,,,,,,1,1
+2,Mustang Delta,C.O.,Ship,Combat,Light Fighter,2,1,1900,1900,,,4,,,,,,,,,,1,1
+2,Mustang Gamma,C.O.,Ship,Competition,Racing,2,1,1750,1750,,2,,,,,,,,,,,1,1
+2,Mustang Omega,C.O.,Ship,Competition,Racing,2,1,1750,1750,,2,,,,,,,,,,,1,1
+2,Nomad,C.O.,Ship,Transporter,Starter / Light Freight,3,1,,4000,,,,3,,,,,,,,,1,1
+4,Nova,Tumbril,Ground Vehicle,Ground Combat,Heavy Tank,1,0,,,,,,,,,,,,,,5,1,1
+1,Nox,Aopoa,Gravlev,Competition,Racing,1,0,,,,,,,,,,,,,,,1,1
+1,P-52 Merlin,Kruger,Ship,Combat,Snub Fighter,1,1,,950,,2,1,,,,,,,,,,1,1
+1,P-72 Archimedes,Kruger,Ship,Competition,Racing,1,1,,600,,4,,,,,,,,,,,1,1
+4,Paladin,Anvil,Ship,Gunship,Gunship,1,3,,45000,,,,,4,4,,,,,,,2.2,1
+5,Perseus,RSI,Ship,Combat,Heavy Gunship,2,3,,95000,,,,8,,,,,4,,,8,2.7,1
+6,Polaris,RSI,Ship,Combat,Corvette,1,4,,918000,,,,12,8,,2,,,,,6,4,1
+2,Prospector,MISC,Ship,Industrial,Light Mining,3,1,13800,,13800,2,,,,,,,,,,,1,1
+3,Prowler,Esperia,Ship,Combat,Dropship,4,2,12500,,,,,2,,2,,,,,,,1,1
+3,Prowler Utility,Esperia,Ship,Transporter,Light Freight,4,2,10500,,,,,2,2,,,,,,,,1,1
+1,PTV,Greycat,Ground Vehicle,Ground,Passenger,1,0,,,,0,,,,,,,,,,,1,1
+1,Pulse,Mirai,Gravlev,Ground,Combat,1,0,,,,,,,,,,,,,,,1,1
+1,Pulse LX,Mirai,Gravlev,Ground,Racing,1,0,,,,,,,,,,,,,,,1,1
+3,RAFT,Argo,Ship,Transporter,Medium Freight,3,2,40700,,,2,,2,,,,,,,,,1,1
+1,Razor,Mirai,Ship,Competition,Racing,1,1,,700,,,2,,,,,,,,,,1,1
+1,Razor EX,Mirai,Ship,Combat,Stealth Fighter,1,1,,600,,,2,,,,,,,,,,1,1
+1,Razor LX,Mirai,Ship,Competition,Racing,2,1,,400,,,2,,,,,,,,,,1,1
+6,Reclaimer,Aegis,Ship,Industrial,Heavy Salvage,1,4,50000,,50000,,,12,,2,,,,,,,2.5,1
+4,Redeemer,Aegis,Ship,Combat,Gunship,6,2,,17000,,,,4,6,,,,,,,,3.5,1
+3,Reliant Kore,MISC,Ship,Transporter,Starter / Light Freight,2,1,3000,3000,,,4,,,,,,,,,,1,1
+3,Reliant Mako,MISC,Ship,Support,Reporting,2,1,3000,3500,,,2,,,,,,,,,,1,1
+3,Reliant Sen,MISC,Ship,Industrial,Light Science,2,1,3000,3500,,,2,,,,,,,,,,1,1
+3,Reliant Tana,MISC,Ship,Combat,Light Fighter,2,1,3500,3500,,,2,2,,,,,,,,,1,1
+4,Retaliator,Aegis,Ship,Combat,Modular,6,2,35000,,,,,10,,,,,,,,,5,1
+1,ROC,Greycat,Ground Vehicle,Industrial,Light Mining,1,0,,,,,,,,,,,,,,,1,1
+1,ROC-DS,Greycat,Ground Vehicle,Industrial,Light Mining,1,0,,,,,,,,,,,,,,,1,1
+2,Sabre,Aegis,Ship,Combat,Stealth Fighter,2,1,4000,4000,,,,4,,,,,,,,,1,1
+2,Sabre Comet,Aegis,Ship,Combat,Stealth Fighter,2,1,4000,4000,,,,4,,,,,,,,,1,1
+2,Sabre Firebird,Aegis,Ship,Combat,Stealth Fighter,2,1,,2500,,,,2,,,,,,,,,1,1
+2,Sabre Peregrine,Aegis,Ship,Competition,Racing,2,1,,2400,,,,,,,,,,,,,1,1
+2,Sabre Raven,Aegis,Ship,Combat,Interdiction,2,1,,2500,,,,2,,,,,,,,,1,1
+2,Salvation,RSI,Ship,Industrial,Starter / Light Salvage,2,1,,2400,,2,,,,,,,,,,,1,1
+2,San'tok.yāi,Aopoa,Ship,Combat,Medium Fighter,1,2,,3675.88,,,,4,,,,,,,,,1,1
+2,Scorpius,RSI,Ship,Combat,Heavy Fighter,1,2,,6500,,,,8,,,,,,,,,2.5,1
+2,Scorpius Antares,RSI,Ship,Combat,Heavy Fighter,1,2,,6500,,,,4,,,,,,,,,2.5,1
+3,Scythe,Vanduul,Ship,Combat,Medium Fighter,1,0,4000,,,2,,,,2,,,,,,"1, 5",2.2,1.5
+3,Shiv,Grey's,Ship,Combat,Heavy Fighter,1,2,,5000,,,,4,2,,,,,,,,1,1
+4,Spartan,Anvil,Ground Vehicle,Combat,Passenger,1,0,,,,,,,,,,,,,,,1,1
+3,SRV,Argo,Ship,Support,Recovery,1,2,,10000,,,,,,,,,,,,,1,1
+5,Starfarer,MISC,Ship,Support,Heavy Refueling,3,3,31500,31500,,,,4,6,,,,,,,,3,1
+5,Starfarer Gemini,MISC,Ship,Support,Heavy Refueling,3,3,33000,33000,,,,4,4,4,,,,,,,3,1
+5,Starlancer MAX,MISC,Ship,Transporter,Medium Freight,1,3,,35000,,,,,8,,,,,,,,4,1
+5,Starlancer TAC,MISC,Ship,Combat,Gunship,2,3,,38000,,,,,8,4,,,,,,,4.25,1
+3,Stinger,Esperia,Ship,Combat,Heavy Fighter,2,2,12500,,,,2,,4,1,,,,,,5,1,1
+4,Storm,Tumbril,Ground Vehicle,Ground Combat,Light Tank,1,0,,,,,,,,,,,,,,,1,1
+4,Storm AA,Tumbril,Ground Vehicle,Ground Combat,Light Tank,1,0,,,,,,,,,,,,,,,1,1
+1,STV,Greycat,Ground Vehicle,Ground,Passenger,1,0,,,,,,,,,,,,,,,1,1
+3,Syulen,Gatac,Ship,Multi-Role,Starter / Pathfinder,2,1,,2000,,,,3,,,,,,,,,1,1
+1,Talon,Esperia,Ship,Combat,Light Fighter,2,1,,2000,,,,,2,,,,,,,,1,1
+1,Talon Shrike,Esperia,Ship,Combat,Light Fighter,2,1,,2000,,,2,,,,,,,,,,1,1
+2,Terrapin,Anvil,Ship,Support,Pathfinder,2,2,20000,,20000,,2,,,,,,,,,,1,1
+2,Terrapin Medic,Anvil,Ship,Support,Medical,2,2,20000,,20000,,2,,,,,,,,,,1,1
+3,Ursa,RSI,Ground Vehicle,Exploration,Pathfinder,1,0,,,,,,,,,,,,,,,1,1
+3,Ursa Medivac,RSI,Ground Vehicle,Support,Medical,4,2,,,,,,,,,,,,,,,1,1
+4,Valkyrie,Anvil,Ship,Combat,Dropship,4,2,25000,,25000,,,6,2,,,,,,,,3.5,1
+3,Vanguard Harbinger,Aegis,Ship,Combat,Heavy Fighter / Bomber,2,2,10000,10000,,,6,,,1,,,,,,2,1,1
+3,Vanguard Hoplite,Aegis,Ship,Combat,Dropship,2,2,14000,14000,,,6,,,1,,,,,,2,1,1
+3,Vanguard Sentinel,Aegis,Ship,Combat,Heavy Fighter / Bomber,2,2,10000,10000,,,6,,,1,,,,,,2,1,1
+3,Vanguard Warden,Aegis,Ship,Combat,Heavy Fighter,2,2,10000,10000,,,6,,,1,,,,,,2,1,1
+2,Vulture,Drake,Ship,Industrial,Light Salvage,3,1,,12000,,2,,,,,,,,,,,1,1
+1,X1,Origin,Gravlev,Exploration,Passenger,1,0,,,,,,,,,,,,,,,1,1
+1,X1 Force,Origin,Gravlev,Combat,Passenger,1,0,,,,,,,,,,,,,,,1,1
+1,X1 Velocity,Origin,Gravlev,Competition,Racing,1,0,,,,,,,,,,,,,,,1,1
+3,Zeus CL,RSI,Ship,Transporter,Medium Freight,4,2,,15000,,,,2,2,,,,,,,,1,1
+3,Zeus ES,RSI,Ship,Exploration,Expedition,4,2,,15000,,,,2,2,,,,,,,,1,1
