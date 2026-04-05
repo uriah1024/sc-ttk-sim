@@ -59,7 +59,7 @@ function draw() {
     
 // --- UI BARS: TARGET SHIP STATS ---
     const barWidth = 120;
-    const barX = canvas.width - 250;
+    const barX = canvas.width - 290;
     
     // Calculate dynamic height for the background box based on shield type
     let targetHudHeight = (shieldFaces === 4) ? 235 : 160;
@@ -391,7 +391,7 @@ function draw() {
         
         // A2 HUD Background
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(startX2 - 10, startY2 - 30, 260, (frame.w2.length * 30) + 40);
+        ctx.fillRect(startX2 - 10, startY2 - 30, 260, (frame.w2.length * 30) + 60);
 
         ctx.fillStyle = '#0088ff';
         ctx.font = 'bold 12px Arial';
@@ -404,7 +404,7 @@ function draw() {
             if (isEnergy) {
                 const currentAmmo = wpn[1], maxAmmo = wpn[2], isRecharging = wpn[3];
                 ctx.fillStyle = '#333333'; ctx.fillRect(startX2 + 25, startY2 - 8, 100, 8);
-                ctx.fillStyle = isRecharging ? '#555555' : '#00ffff';
+                ctx.fillStyle = isRecharging ? '#555555' : '#ff4444';
                 ctx.fillRect(startX2 + 25, startY2 - 8, (currentAmmo / maxAmmo) * 100, 8);
                 ctx.fillStyle = '#ffffff'; ctx.fillText(`${currentAmmo.toFixed(0)} / ${maxAmmo}`, startX2 + 135, startY2);
             } else {

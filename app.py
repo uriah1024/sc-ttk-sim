@@ -286,6 +286,21 @@ if __name__ == '__main__':
                     generate_interactive_ttk_chart(top_10_df, "Overall TTK Breakdown")
                     generate_discord_copy_button(top_10_df.drop(columns=["TTK Float"]), "📋 Copy Top 10 to Discord")
                     st.dataframe(top_10_df.drop(columns=["TTK Float"]), use_container_width=True, hide_index=True)
+
+                    # --- NEW: SAVE TOURNAMENT WINNER TO SESSION STATE ---
+                    if not top_10_df.empty:
+                        best_row = top_10_df.iloc[0]
+                        
+                        # We need the raw weapon list, not the pretty string.
+                        # We can grab it from the original results list.
+                        best_raw_loadout = results[0]['loadout']
+                        
+                        st.session_state.tournament_winner = {
+                            "attacker": t1_attacker,
+                            "target": t1_target,
+                            "loadout": best_raw_loadout,
+                            "ttk": best_row['TTK']
+                        }
                     
                     st.subheader("🏆 Top Loadouts (Velocity Matched < 60 m/s)")
                     matched_df = df[df["Speed Float"] < 60.0]
@@ -458,6 +473,29 @@ if __name__ == '__main__':
             
             # --- ATTACKER 1 (LEAD) ---
             st.markdown("### 🟢 Attacker 1 (Lead)")
+            
+            # --- NEW: TOURNAMENT HANDOFF LOGIC ---
+            if 'tournament_winner' in st.session_state:
+                win_data = st.session_state.tournament_winner
+                st.info(f"🏆 Recent Tournament Winner: **{win_data['attacker']}** ({win_data['ttk']})")
+                
+                def load_winner_callback():
+                    # Force the UI to match the winning ship
+                    st.session_state['t3_atk1'] = win_data['attacker']
+                    st.session_state['t3_tgt'] = win_data['target']
+                    st.session_state['t3_frc1'] = False # Disable forced identical groups
+                    
+                    # Map the winning loadout back into the individual slot keys
+                    hp_list = db.ship_configs[win_data['attacker']]['hardpoints']
+                    for i, hp_size in enumerate(hp_list):
+                        if i < len(win_data['loadout']):
+                            # We must match the exact string name used in the selectbox
+                            winning_weapon = win_data['loadout'][i]
+                            st.session_state[f"vis_hp1_{i}"] = winning_weapon
+
+                st.button("⏬ Auto-Load Winning Loadout", on_click=load_winner_callback, type="primary", use_container_width=True)
+            # --- END HANDOFF LOGIC ---
+
             t3_attacker_1 = st.selectbox("Ship", attacker_options, index=attacker_options.index("F7A Hornet Mk II") if "F7A Hornet Mk II" in attacker_options else 0, key="t3_atk1")
             t3_trigger_1 = st.selectbox("Trigger Logic (A1)", ["Benchmark", "Human", "AI"], help=trigger_help, key="t3_trig1")
             t3_angle_1 = st.selectbox("Attack Angle (A1)", ["Front", "Right", "Rear", "Left"], key="t3_ang1")
