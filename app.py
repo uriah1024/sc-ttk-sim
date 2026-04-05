@@ -321,8 +321,100 @@ if __name__ == '__main__':
                     intel_df = pd.DataFrame(intel)
                     generate_discord_copy_button(intel_df, "📋 Copy Intel to Discord")
                     st.dataframe(intel_df, use_container_width=True, hide_index=True)
+
             else:
                 st.info("Configure your matchup on the left and click 'Run Tournament Simulator' to begin.")
+
+            # --- NEW: QUICK PLAYBACK (1v1) ---
+            if 'tournament_results' in st.session_state and st.session_state.tournament_results:
+                st.dataframe(st.session_state.top_10_df)
+                st.divider()
+                st.subheader("▶️ Quick Playback (1v1)")
+                st.markdown("Select a loadout from the Top 10 to instantly visualize its 1v1 performance.")
+                
+                playback_options = {f"Rank {d['rank']}: {d['desc']} ({d['ttk']})": d for d in st.session_state.tournament_results}
+                selected_playback_str = st.selectbox("Select Loadout for Playback:", list(playback_options.keys()), key="t1_play_sel")
+                
+                if st.button("🎬 Render Quick Playback", use_container_width=True):
+                    sel_data = playback_options[selected_playback_str]
+                    
+                    # We must recalculate these here since we are outside the run_btn block
+                    actual_pp = None if t1_pp == "Default" else t1_pp
+                    actual_shield = None if t1_shield == "None" else t1_shield
+                    
+                    # 1. Setup 1v1 Target
+                    vis_target = DefenderLoadout(t1_target, db, actual_pp)
+                    vis_target.equip_shields(actual_shield, db)
+                    shield_faces_val = getattr(vis_target, 'shield_faces', 1.0)
+                    
+                    # 2. Setup 1v1 Attacker Weapons
+                    a1_ammo_mod = db.ship_configs[t1_attacker].get('max_ammo_mod', 1.0)
+                    a1_regen_mod = db.ship_configs[t1_attacker].get('max_regen_sec_mod', 1.0)
+                    vis_weapons_1 = [Weapon(db.weapons[w], a1_ammo_mod, a1_regen_mod) for w in sel_data['loadout']]
+                    vis_weapons_2 = [] # Strict 1v1
+                    
+                    with st.spinner(f"Rendering Playback for Rank {sel_data['rank']}..."):
+                        frames, final_ttk, death_reason, combat_log = simulate_visual_fight(
+                            vis_weapons_1, vis_weapons_2, vis_target, 
+                            engagement_distance=t1_dist, 
+                            trigger_1=t1_trigger,
+                            trigger_2="Benchmark", # Irrelevant for 1v1
+                            angle_1="Front",
+                            angle_2="Front",
+                            db=db
+                        )
+                        
+                    if len(frames) == 0:
+                        st.error("Simulation failed to generate frames.")
+                    else:
+                        st.success(f"Render Complete! TTK: {final_ttk:.2f}s ({death_reason})")
+                        json_frames = json.dumps(frames)
+                        canvas_w = 900 # 1v1 size
+                        
+                        try:
+                            # Load Templates
+                            with open("visualizer.html", "r", encoding="utf-8") as f_html:
+                                html_template = f_html.read()
+                            with open("visualizer.js", "r", encoding="utf-8") as f_js:
+                                js_logic = f_js.read()
+                                
+                            # Load custom images safely
+                            art_folder = os.path.join("Art", "Ship Art")
+                            bg_img = get_base64_image(os.path.join(art_folder, "background.jpg"))
+                            tgt_img = get_base64_image(os.path.join(art_folder, "target_ship.png"))
+                            a1_img = get_base64_image(os.path.join(art_folder, "attacker1.png"))
+                            a2_img = "" # No Wingman
+                                
+                            data_script = f"""
+                            <script>
+                                const SIM_DATA = {{
+                                    frames: {json_frames},
+                                    initialDistance: {t1_dist},
+                                    shieldFaces: {int(shield_faces_val)},
+                                    images: {{
+                                        bg: {json.dumps(bg_img)},
+                                        target: {json.dumps(tgt_img)},
+                                        a1: {json.dumps(a1_img)},
+                                        a2: {json.dumps(a2_img)}
+                                    }}
+                                }};
+                            </script>
+                            """
+                            
+                            logic_script = f"<script>\n{js_logic}\n</script>"
+                            final_html = html_template.replace("__CANVAS_W__", str(canvas_w)) \
+                                                      .replace("__DATA_INJECTION__", data_script) \
+                                                      .replace("__JS_INJECTION__", logic_script)
+                                                      
+                            components.html(final_html, height=650, scrolling=True)
+
+                            # --- RENDER COMBAT TELEMETRY LOG ---
+                            st.subheader("📡 Combat Telemetry Log")
+                            for entry in combat_log:
+                                st.markdown(f"<span style='color: {entry['color']}; font-family: monospace; font-size: 1rem;'><b>[{entry['t']:.2f}s]</b> - {entry['msg']}</span>", unsafe_allow_html=True)
+                                
+                        except FileNotFoundError as e:
+                            st.error(f"Error loading visualizer files: {e}")
 
     # === TAB 2: PENETRATION SANDBOX ===
     with tab_sandbox:
