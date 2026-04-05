@@ -104,13 +104,11 @@ function draw() {
                 ctx.fillStyle = '#00ffcc'; ctx.fillRect(quadBarX, tY + 1, quadBarWidth * frame.sr[i], 3);
             }
             
-            // Build the independent absorption text for this face
+            // Build the independent absorption text for this face (Ballistic only)
             let absText = "";
-            if (hasBallistic && hasDistortion) absText = `(B: ${frame.sabp[i]}% | D: ${frame.sabd[i]}%) `;
-            else if (hasBallistic) absText = `(${frame.sabp[i]}%) `;
-            else if (hasDistortion) absText = `(D: ${frame.sabd[i]}%) `;
+            if (hasBallistic) absText = `(${frame.sabp[i]}%) `;
 
-            ctx.fillStyle = (hasBallistic || hasDistortion) ? '#ffaa00' : '#aaaaaa';
+            ctx.fillStyle = hasBallistic ? '#ffaa00' : '#aaaaaa';
             ctx.fillText(`${(frame.s[i]*100).toFixed(0)}% ${absText}🛡️ ${frame.shp[i]}`, quadBarX + quadBarWidth + 10, tY); 
         }
         tY += 15;
@@ -123,9 +121,7 @@ function draw() {
         let shdOffset = ctx.measureText(shdText).width + 5;
         
         let absText = "";
-        if (hasBallistic && hasDistortion) absText = `(B: ${frame.sabp[0]}% | D: ${frame.sabd[0]}%) `;
-        else if (hasBallistic) absText = `(${frame.sabp[0]}%) `;
-        else if (hasDistortion) absText = `(D: ${frame.sabd[0]}%) `;
+        if (hasBallistic) absText = `(${frame.sabp[0]}%) `;
 
         if (absText !== "") {
             ctx.fillStyle = '#ffaa00'; 
@@ -364,12 +360,17 @@ function draw() {
     
     frame.w1.forEach((wpn, idx) => {
         const isEnergy = wpn[0] === 1;
+        const isDistortion = wpn[0] === 2;
         ctx.fillStyle = '#cccccc'; ctx.font = '11px Arial'; ctx.fillText(`S${idx + 1}`, startX, startY);
         
-        if (isEnergy) {
+        if (isEnergy || isDistortion) {
             const currentAmmo = wpn[1], maxAmmo = wpn[2], isRecharging = wpn[3];
             ctx.fillStyle = '#333333'; ctx.fillRect(startX + 25, startY - 8, 100, 8);
-            ctx.fillStyle = isRecharging ? '#555555' : '#ff4444';
+            
+            // Red for Energy, Purple for Distortion
+            let barColor = isDistortion ? '#bb00ff' : '#ff4444';
+            ctx.fillStyle = isRecharging ? '#555555' : barColor;
+            
             ctx.fillRect(startX + 25, startY - 8, (currentAmmo / maxAmmo) * 100, 8);
             ctx.fillStyle = '#ffffff'; ctx.fillText(`${currentAmmo.toFixed(0)} / ${maxAmmo}`, startX + 135, startY);
         } else {
@@ -391,7 +392,7 @@ function draw() {
         
         // A2 HUD Background
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(startX2 - 10, startY2 - 30, 260, (frame.w2.length * 30) + 60);
+        ctx.fillRect(startX2 - 10, startY2 - 30, 260, (frame.w2.length * 30) + 40);
 
         ctx.fillStyle = '#0088ff';
         ctx.font = 'bold 12px Arial';
@@ -399,12 +400,17 @@ function draw() {
         
         frame.w2.forEach((wpn, idx) => {
             const isEnergy = wpn[0] === 1;
+            const isDistortion = wpn[0] === 2;
             ctx.fillStyle = '#cccccc'; ctx.font = '11px Arial'; ctx.fillText(`S${idx + 1}`, startX2, startY2);
             
-            if (isEnergy) {
+            if (isEnergy || isDistortion) {
                 const currentAmmo = wpn[1], maxAmmo = wpn[2], isRecharging = wpn[3];
                 ctx.fillStyle = '#333333'; ctx.fillRect(startX2 + 25, startY2 - 8, 100, 8);
-                ctx.fillStyle = isRecharging ? '#555555' : '#ff4444';
+                
+                // Red for Energy, Purple for Distortion
+                let barColor = isDistortion ? '#bb00ff' : '#ff4444';
+                ctx.fillStyle = isRecharging ? '#555555' : barColor;
+                
                 ctx.fillRect(startX2 + 25, startY2 - 8, (currentAmmo / maxAmmo) * 100, 8);
                 ctx.fillStyle = '#ffffff'; ctx.fillText(`${currentAmmo.toFixed(0)} / ${maxAmmo}`, startX2 + 135, startY2);
             } else {
