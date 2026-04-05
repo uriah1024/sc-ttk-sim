@@ -344,12 +344,13 @@ def simulate_visual_fight(attacker_1_weapons, attacker_2_weapons, target_ship, e
         def extract_wep_data(wep_list):
             w_data = []
             for w in wep_list:
+                w_type = 2 if w.damage_type == 'distortion' else (1 if w.is_energy else 0)
                 if w.is_energy:
-                    w_data.append([1, round(w.current_ammo, 1), w.cap_max, w.is_recharging])
+                    w_data.append([w_type, round(w.current_ammo, 1), w.cap_max, w.is_recharging])
                 else:
                     heat_pct = (w.current_heat / w.max_heat) * 100.0 if w.max_heat > 0 else 0.0
                     ammo_fired = w.initial_ammo - w.total_ammo
-                    w_data.append([0, w.total_ammo, heat_pct, ammo_fired, w.is_overheated])
+                    w_data.append([w_type, w.total_ammo, heat_pct, ammo_fired, w.is_overheated])
             return w_data
             
         frames.append({
@@ -362,8 +363,8 @@ def simulate_visual_fight(attacker_1_weapons, attacker_2_weapons, target_ship, e
             "a": round(max(0, arm_pct), 3),
             "atp": round(cur_thresh_phys, 1),
             "ate": round(cur_thresh_engy, 1),
-            "sabp": round((target_ship.shield_absorp_min['ballistic'] + (target_ship.shield_absorp_max['ballistic'] - target_ship.shield_absorp_min['ballistic']) * (sum(face_pcts)/4.0)) * 100, 1),
-            "sabd": round((target_ship.shield_absorp_min['distortion'] + (target_ship.shield_absorp_max['distortion'] - target_ship.shield_absorp_min['distortion']) * (sum(face_pcts)/4.0)) * 100, 1),
+            "sabp": [round((target_ship.shield_absorp_min['ballistic'] + (target_ship.shield_absorp_max['ballistic'] - target_ship.shield_absorp_min['ballistic']) * pct) * 100, 1) for pct in face_pcts],
+            "sabd": [round((target_ship.shield_absorp_min['distortion'] + (target_ship.shield_absorp_max['distortion'] - target_ship.shield_absorp_min['distortion']) * pct) * 100, 1) for pct in face_pcts],
             "h": round(max(0, hull_pct), 3),
             "pp": round(max(0, pp_pct), 3),
             "pdh": round(max(0, target_ship.pp_dist_hp / target_ship.max_pp_dist_hp), 3),

@@ -71,9 +71,11 @@ function draw() {
     // --- DETERMINE ACTIVE WEAPON TYPES ---
     let hasBallistic = false;
     let hasEnergy = false;
+    let hasDistortion = false;
     [...(frame.w1 || []), ...(frame.w2 || [])].forEach(w => {
         if (w[0] === 0) hasBallistic = true;
         if (w[0] === 1) hasEnergy = true; 
+        if (w[0] === 2) hasDistortion = true; 
     });
 
     // SHIELD BAR
@@ -81,23 +83,7 @@ function draw() {
     
     if (shieldFaces === 4) {
         ctx.fillStyle = '#cccccc'; 
-        let shdTextQuad = `Shields (Quad):`;
-        ctx.fillText(shdTextQuad, barX, tY);
-        let shdOffsetQuad = ctx.measureText(shdTextQuad).width + 5;
-        
-        // Conditional Absorption Text for Ballistics
-        if (hasBallistic) {
-            ctx.fillText(`(`, barX + shdOffsetQuad, tY);
-            shdOffsetQuad += ctx.measureText(`(`).width;
-            ctx.fillStyle = '#ffaa00'; // Ballistic Orange
-            ctx.fillText(`${frame.sabp}%`, barX + shdOffsetQuad, tY);
-            shdOffsetQuad += ctx.measureText(`${frame.sabp}%`).width;
-            ctx.fillStyle = '#cccccc';
-            ctx.fillText(`) `, barX + shdOffsetQuad, tY);
-            shdOffsetQuad += ctx.measureText(`) `).width;
-        }
-        
-        ctx.fillText(`🛡️ ${frame.tshp}`, barX + shdOffsetQuad, tY);
+        ctx.fillText(`Shields (Quad): 🛡️ ${frame.tshp}`, barX, tY);
         tY += 5;
         
         const fNames = ['Front', 'Right', 'Rear', 'Left'];
@@ -110,7 +96,6 @@ function draw() {
             const quadBarWidth = 90; 
             const quadBarX = barX + 40; 
             
-            // Health Bar
             ctx.fillStyle = '#333333'; ctx.fillRect(quadBarX, tY - 9, quadBarWidth, 8);
             ctx.fillStyle = '#00c8ff'; ctx.fillRect(quadBarX, tY - 9, quadBarWidth * frame.s[i], 8);
             
@@ -119,30 +104,36 @@ function draw() {
                 ctx.fillStyle = '#00ffcc'; ctx.fillRect(quadBarX, tY + 1, quadBarWidth * frame.sr[i], 3);
             }
             
-            ctx.fillStyle = '#aaaaaa';
-            ctx.fillText(`${(frame.s[i]*100).toFixed(0)}% 🛡️ ${frame.shp[i]}`, quadBarX + quadBarWidth + 10, tY); 
+            // Build the independent absorption text for this face
+            let absText = "";
+            if (hasBallistic && hasDistortion) absText = `(B: ${frame.sabp[i]}% | D: ${frame.sabd[i]}%) `;
+            else if (hasBallistic) absText = `(${frame.sabp[i]}%) `;
+            else if (hasDistortion) absText = `(D: ${frame.sabd[i]}%) `;
+
+            ctx.fillStyle = (hasBallistic || hasDistortion) ? '#ffaa00' : '#aaaaaa';
+            ctx.fillText(`${(frame.s[i]*100).toFixed(0)}% ${absText}🛡️ ${frame.shp[i]}`, quadBarX + quadBarWidth + 10, tY); 
         }
         tY += 15;
         ctx.font = '14px Arial'; 
     } else {
-        // INLINE S2 SHIELDS
+        // INLINE S2/S1 SHIELDS
         ctx.fillStyle = '#cccccc'; 
         let shdText = `Shield:`;
         ctx.fillText(shdText, barX, tY);
         let shdOffset = ctx.measureText(shdText).width + 5;
         
-        // Conditional Absorption Text for Ballistics
-        if (hasBallistic) {
-            ctx.fillText(`(`, barX + shdOffset, tY);
-            shdOffset += ctx.measureText(`(`).width;
-            ctx.fillStyle = '#ffaa00'; // Ballistic Orange
-            ctx.fillText(`${frame.sabp}%`, barX + shdOffset, tY);
-            shdOffset += ctx.measureText(`${frame.sabp}%`).width;
-            ctx.fillStyle = '#cccccc';
-            ctx.fillText(`) `, barX + shdOffset, tY);
-            shdOffset += ctx.measureText(`) `).width;
+        let absText = "";
+        if (hasBallistic && hasDistortion) absText = `(B: ${frame.sabp[0]}% | D: ${frame.sabd[0]}%) `;
+        else if (hasBallistic) absText = `(${frame.sabp[0]}%) `;
+        else if (hasDistortion) absText = `(D: ${frame.sabd[0]}%) `;
+
+        if (absText !== "") {
+            ctx.fillStyle = '#ffaa00'; 
+            ctx.fillText(absText, barX + shdOffset, tY);
+            shdOffset += ctx.measureText(absText).width;
         }
         
+        ctx.fillStyle = '#cccccc';
         ctx.fillText(`🛡️ ${frame.tshp}`, barX + shdOffset, tY);
 
         tY += 18;

@@ -175,10 +175,15 @@ class DefenderLoadout:
         self.hull_parts = {}
         body_hp = config_data.get('body_hp', 0)
         nose_hp = config_data.get('nose_hp', 0)
+        tail_hp = config_data.get('tail_hp', 0)
         
-        self.hull_parts['body'] = {'hp': body_hp if body_hp > 0 else 1000, 'parent': None, 'transfer_rate': 0.0, 'is_vital': True}
-        if nose_hp > 0:
-            self.hull_parts['nose'] = {'hp': nose_hp, 'parent': 'body', 'transfer_rate': 1.0, 'is_vital': False}
+        # Rule: If no vital HP exists, set hull HP to 1.
+        if body_hp <= 0 and nose_hp <= 0 and tail_hp <= 0:
+            self.hull_parts['body'] = {'hp': 1.0, 'max_hp': 1.0, 'parent': None, 'transfer_rate': 0.0, 'is_vital': True}
+        else:
+            if body_hp > 0: self.hull_parts['body'] = {'hp': body_hp, 'max_hp': body_hp, 'parent': None, 'transfer_rate': 0.0, 'is_vital': True}
+            if nose_hp > 0: self.hull_parts['nose'] = {'hp': nose_hp, 'max_hp': nose_hp, 'parent': None, 'transfer_rate': 0.0, 'is_vital': True}
+            if tail_hp > 0: self.hull_parts['tail'] = {'hp': tail_hp, 'max_hp': tail_hp, 'parent': None, 'transfer_rate': 0.0, 'is_vital': True}
 
         self.shield_slots = config_data.get('shield_count', 1)
         self.shield_faces = 1.0 
@@ -458,21 +463,37 @@ class DefenderLoadout:
             d_hull_taken = d_final
 
         if d_hull_taken > 0 and not vital_dead:
-            loc = hit_location if hit_location in self.hull_parts else 'body'
-            damage_to_propagate = d_hull_taken
+            has_body = 'body' in self.hull_parts
+            has_nose = 'nose' in self.hull_parts
+            has_tail = 'tail' in self.hull_parts
+            actual_vital_part = 'body'
+            
+            if target_face == 'Front':
+                if has_nose: actual_vital_part = 'nose'
+                elif has_body: actual_vital_part = 'body'
+                elif has_tail: actual_vital_part = 'tail'
+            elif target_face == 'Rear':
+                if has_tail: actual_vital_part = 'tail'
+                elif has_body: actual_vital_part = 'body'
+                elif has_nose: actual_vital_part = 'nose'
+            elif target_face in ['Left', 'Right']:
+                if has_body:
+                    actual_vital_part = 'body'
+                elif has_nose and not has_tail:
+                    actual_vital_part = 'nose'
+                elif has_tail and not has_nose:
+                    actual_vital_part = 'tail'
+                elif has_nose and has_tail:
+                    actual_vital_part = 'nose'
+                    
+            # Ultimate safety fallback
+            if actual_vital_part not in self.hull_parts:
+                actual_vital_part = list(self.hull_parts.keys())[0]
 
-            while loc and damage_to_propagate > 0:
-                part = self.hull_parts[loc]
-                actual_part_damage = min(damage_to_propagate, part['hp'])
-                part['hp'] -= actual_part_damage
-                if part['parent']:
-                    if part['hp'] <= 0:
-                        damage_to_propagate = max(0, damage_to_propagate - actual_part_damage)
-                    else:
-                        damage_to_propagate = damage_to_propagate * part['transfer_rate']
-                    loc = part['parent']
-                else:
-                    break
+            self.hull_parts[actual_vital_part]['hp'] -= d_hull_taken
+            if self.hull_parts[actual_vital_part]['hp'] <= 0:
+                self.is_destroyed = True
+                self.death_reason = f"Hull Destroyed ({actual_vital_part.capitalize()})"
 
 class AttackerFCS:
     def __init__(self, mode, weapons, target_ship, engagement_dist, db):
