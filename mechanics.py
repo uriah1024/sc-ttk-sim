@@ -82,12 +82,13 @@ class Weapon:
                 if self.current_ammo >= self.cap_max:
                     self.is_recharging = False 
                     local_trigger = trigger_pulled
-                elif override_recharge and trigger_pulled:
+                # FIX: Only break out of recharge if we actually have at least 1 shot ready!
+                elif override_recharge and trigger_pulled and self.current_ammo >= 1.0:
                     local_trigger = True
                     self.is_recharging = False 
             else:
                 local_trigger = trigger_pulled
-                if self.current_ammo < 1 and local_trigger:
+                if self.current_ammo < 1.0 and local_trigger:
                     self.is_recharging = True 
                     local_trigger = False
 
@@ -96,11 +97,11 @@ class Weapon:
 
             if local_trigger:
                 self.time_since_trigger_released = 0.0 
-                if self.time_since_last_shot >= self.time_between_shots and self.current_ammo >= 1:
-                    self.current_ammo -= 1
+                if self.time_since_last_shot >= self.time_between_shots and self.current_ammo >= 1.0:
+                    self.current_ammo -= 1.0
                     self.time_since_last_shot -= self.time_between_shots 
                     fired = True
-                    if self.current_ammo < 1:
+                    if self.current_ammo < 1.0:
                         self.is_recharging = True
             else:
                 self.time_since_trigger_released += dt
@@ -513,9 +514,12 @@ class AttackerFCS:
                     self.is_firing_burst = False
                 return (True, True)
                 
-            shield_is_down = any(hp <= 0.1 for hp in self.target.shield_hp.values())
+            # FIX: Monitor ANY damaged shield face, not just 0 HP faces
+            damaged_faces = [f for f, hp in self.target.shield_hp.items() if hp < (self.target.max_shield_hp_per_face * 0.99)]
             
-            if self.was_shield_down and not shield_is_down:
+            is_currently_down = any(self.target.shield_hp[f] <= 0.1 for f in self.target.shield_hp)
+            
+            if self.was_shield_down and not is_currently_down:
                 self.mistakes += 1
                 exact_delay = self.target.shield_down_delay
                 if self.mistakes == 1:
@@ -523,13 +527,12 @@ class AttackerFCS:
                 else:
                     self.assumed_delay = exact_delay + random.uniform(-0.5, 0.5)
             
-            self.was_shield_down = shield_is_down
+            self.was_shield_down = is_currently_down
             
-            if shield_is_down:
-                down_faces = [f for f, hp in self.target.shield_hp.items() if hp <= 0.1]
-                max_time_since_hit = max([self.target.time_since_last_hit[f] for f in down_faces]) if down_faces else 0.0
+            if damaged_faces:
+                max_time_since_hit = max([self.target.time_since_last_hit[f] for f in damaged_faces])
                 
-                # If the shield is about to regen, panic fire to keep it down
+                # If any damaged shield is about to regen, panic fire to keep it down
                 if max_time_since_hit >= (self.assumed_delay - self.flight_time - 0.1):
                     cap_pcts = [w.current_ammo / w.cap_max for w in self.weapons if w.is_energy and w.cap_max > 0]
                     heat_pcts = [(w.current_heat / w.max_heat) for w in self.weapons if not w.is_energy and w.max_heat > 0]
@@ -547,21 +550,27 @@ class AttackerFCS:
                     self.is_firing_burst = True
                     return (True, True) 
                 else:
-                    # FIX: Keep firing at the hull! The Weapon class will handle its own empty/recharge lockouts automatically.
                     return (True, False) 
             else:
                 return (True, False)
 
         elif self.mode == "AI":
-            shield_is_down = any(hp <= 0.1 for hp in self.target.shield_hp.values())
-            if shield_is_down:
-                down_faces = [f for f, hp in self.target.shield_hp.items() if hp <= 0.1]
-                max_time_since_hit = max([self.target.time_since_last_hit[f] for f in down_faces]) if down_faces else 0.0
-                # If shield about to regen, force an override tap
-                if max_time_since_hit >= (self.target.shield_down_delay - self.flight_time - 0.05):
-                    return (True, True)
-                # FIX: Keep firing at the hull!
-                return (True, False)
-            return (True, False)
+            # FIX: Monitor ANY damaged shield face
+            damaged_faces = [f for f, hp in self.target.shield_hp.items() if hp < (self.target.max_shield_hp_per_face * 0.99)]
             
-        return (True, False)
+            if damaged_faces:
+                needs_override = False
+                for f in damaged_faces:
+                    # Use Down Delay if face is broken, otherwise use Dmg Delay
+                    delay = self.target.shield_down_delay if self.target.shield_hp[f] <= 0.1 else self.target.shield_dmg_delay
+                    
+                    # If about to regen, force an override tap
+                    if self.target.time_since_last_hit[f] >= (delay - self.flight_time - 0.05):
+                        needs_override = True
+                        break
+                        
+                if needs_override:
+                    return (True, True)
+                return (True, False)
+                
+            return (True, False)
