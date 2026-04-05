@@ -326,7 +326,7 @@ if __name__ == '__main__':
                 st.info("Configure your matchup on the left and click 'Run Tournament Simulator' to begin.")
 
             # --- NEW: QUICK PLAYBACK (1v1) ---
-            if 'tournament_results' in st.session_state and st.session_state.tournament_results:
+            if 'top_10_df' in st.session_state and 'tournament_results' in st.session_state:
                 st.dataframe(st.session_state.top_10_df)
                 st.divider()
                 st.subheader("▶️ Quick Playback (1v1)")
