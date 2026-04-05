@@ -45,19 +45,28 @@ function draw() {
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // --- NEW: DRAW BACKGROUND ---
+    // --- DRAW BACKGROUND ---
     if (imgBg.src && imgBg.complete) {
         ctx.drawImage(imgBg, 0, 0, canvas.width, canvas.height);
     }
     
-    // --- UI BARS ---
+    // --- UI BARS: TOP LEFT TIMER ---
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(10, 10, 120, 30);
     ctx.fillStyle = '#aaaaaa';
     ctx.font = '14px Arial';
     ctx.fillText(`Time: ${frame.t.toFixed(2)}s`, 20, 30);
     
+    // --- UI BARS: TARGET SHIP STATS ---
     const barWidth = 120;
     const barX = canvas.width - 250;
-    let tY = 20;
+    
+    // Calculate dynamic height for the background box based on shield type
+    let targetHudHeight = (shieldFaces === 4) ? 235 : 160;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(barX - 10, 10, 260, targetHudHeight);
+
+    let tY = 25; // Adjusted starting Y to pad inside the box
 
     // SHIELD BAR
     const globalAvgS = (frame.s[0] + frame.s[1] + frame.s[2] + frame.s[3]) / 4.0;
@@ -138,7 +147,7 @@ function draw() {
     tY += 30;
     ctx.fillStyle = '#cccccc'; ctx.fillText(`P.Plant: ${(frame.pp * 100).toFixed(1)}% 🩵 ${frame.pphp}`, barX, tY);
     ctx.fillStyle = '#333333'; ctx.fillRect(barX, tY + 5, barWidth, 8);
-    ctx.fillStyle = '#00ffff'; ctx.fillRect(barX, tY + 5, barWidth * frame.pp, 8); // Changed to Teal
+    ctx.fillStyle = '#00ffff'; ctx.fillRect(barX, tY + 5, barWidth * frame.pp, 8);
     
     tY += 15;
     ctx.fillStyle = '#333333'; ctx.fillRect(barX, tY, barWidth, 4);
@@ -154,12 +163,11 @@ function draw() {
         ctx.save();
         ctx.translate(cx, targetY);
         ctx.rotate(Math.PI); // Rotates 180 degrees
-        ctx.drawImage(imgTarget, -30, -30, 60, 60);
+        ctx.drawImage(imgTarget, -40, -40, 80, 80);
         ctx.restore();
     } else {
         ctx.fillStyle = '#ff4444';
         ctx.beginPath();
-        // Inverted Y coordinates to point downward
         ctx.moveTo(cx, targetY - 25); 
         ctx.lineTo(cx + 10, targetY - 5); 
         ctx.lineTo(cx + 30, targetY + 15); 
@@ -197,7 +205,7 @@ function draw() {
     
     // --- ATTACKER 1 (LEAD) ---
     if (imgA1.src && imgA1.complete) {
-        ctx.drawImage(imgA1, a1X - 30, a1Y - 50, 80, 80);
+        ctx.drawImage(imgA1, a1X - 40, a1Y - 40, 80, 80);
     } else {
         ctx.fillStyle = '#44ff44';
         ctx.beginPath();
@@ -206,35 +214,17 @@ function draw() {
         ctx.lineTo(a1X - 30, a1Y + 15); ctx.lineTo(a1X - 10, a1Y - 5); ctx.fill();
     }
 
-    // --- WEAPON HUD (ATTACKER 2) ---
+    // --- RESTORED: ATTACKER 2 (WINGMAN) SHIP ---
     if (hasAttacker2) {
-        let startX2 = canvas.width - 320;
-        let startY2 = canvas.height - (frame.w2.length * 30) - 10; // Uses 30px spacing
-        ctx.fillStyle = '#0088ff';
-        ctx.font = 'bold 12px Arial';
-        ctx.fillText(`🔵 A2 Weapons`, startX2, startY2 - 15);
-        
-        frame.w2.forEach((wpn, idx) => {
-            const isEnergy = wpn[0] === 1;
-            ctx.fillStyle = '#cccccc'; ctx.font = '11px Arial'; ctx.fillText(`S${idx + 1}`, startX2, startY2);
-            
-            if (isEnergy) {
-                const currentAmmo = wpn[1], maxAmmo = wpn[2], isRecharging = wpn[3];
-                ctx.fillStyle = '#333333'; ctx.fillRect(startX2 + 25, startY2 - 8, 100, 8);
-                ctx.fillStyle = isRecharging ? '#555555' : '#00ffff';
-                ctx.fillRect(startX2 + 25, startY2 - 8, (currentAmmo / maxAmmo) * 100, 8);
-                ctx.fillStyle = '#ffffff'; ctx.fillText(`${currentAmmo.toFixed(0)} / ${maxAmmo}`, startX2 + 135, startY2);
-            } else {
-                const totalAmmo = wpn[1], heatPct = wpn[2], ammoFired = wpn[3], isOverheated = wpn[4];
-                ctx.fillStyle = '#333333'; ctx.fillRect(startX2 + 25, startY2 - 8, 100, 8);
-                ctx.fillStyle = isOverheated ? '#ff0000' : '#ffaa00';
-                ctx.fillRect(startX2 + 25, startY2 - 8, Math.min(heatPct, 100) || 0, 8);
-                ctx.fillStyle = isOverheated ? '#ff0000' : '#ffffff';
-                const heatStatus = isOverheated ? '🔥🔥🔥' : `🔥: ${heatPct.toFixed(1)}%`;
-                ctx.fillText(`${heatStatus} | Ammo: ${totalAmmo}`, startX2 + 135, startY2);
-            }
-            startY2 += 30; // CRITICAL: Increment by 30 to prevent stacking!
-        });
+        if (imgA2.src && imgA2.complete) {
+            ctx.drawImage(imgA2, a2X - 40, a2Y - 40, 80, 80);
+        } else {
+            ctx.fillStyle = '#0088ff';
+            ctx.beginPath();
+            ctx.moveTo(a2X, a2Y - 25); ctx.lineTo(a2X + 10, a2Y - 5); ctx.lineTo(a2X + 30, a2Y + 15); 
+            ctx.lineTo(a2X + 10, a2Y + 10); ctx.lineTo(a2X, a2Y + 5); ctx.lineTo(a2X - 10, a2Y + 10);
+            ctx.lineTo(a2X - 30, a2Y + 15); ctx.lineTo(a2X - 10, a2Y - 5); ctx.fill();
+        }
     }
 
     // --- FLARES ---
@@ -311,7 +301,12 @@ function draw() {
     
     // --- WEAPON HUD (ATTACKER 1) ---
     let startX = 20;
-    let startY = canvas.height - (frame.w1.length * 25) - 10;
+    let startY = canvas.height - (frame.w1.length * 30) - 10;
+    
+    // A1 HUD Background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(startX - 10, startY - 30, 260, (frame.w1.length * 30) + 40);
+
     ctx.fillStyle = '#44ff44';
     ctx.font = 'bold 12px Arial';
     ctx.fillText(`🟢 A1 Weapons`, startX, startY - 15);
@@ -335,13 +330,18 @@ function draw() {
             const heatStatus = isOverheated ? '🔥🔥🔥' : `🔥: ${heatPct.toFixed(1)}%`;
             ctx.fillText(`${heatStatus} | Ammo: ${totalAmmo}`, startX + 135, startY);
         }
-        startY += 25;
+        startY += 30;
     });
     
     // --- WEAPON HUD (ATTACKER 2) ---
     if (hasAttacker2) {
-        let startX2 = canvas.width - 290;
-        let startY2 = canvas.height - (frame.w2.length * 25) - 10;
+        let startX2 = canvas.width - 320;
+        let startY2 = canvas.height - (frame.w2.length * 30) - 10;
+        
+        // A2 HUD Background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(startX2 - 10, startY2 - 30, 260, (frame.w2.length * 30) + 40);
+
         ctx.fillStyle = '#0088ff';
         ctx.font = 'bold 12px Arial';
         ctx.fillText(`🔵 A2 Weapons`, startX2, startY2 - 15);
@@ -365,7 +365,7 @@ function draw() {
                 const heatStatus = isOverheated ? '🔥🔥🔥' : `🔥: ${heatPct.toFixed(1)}%`;
                 ctx.fillText(`${heatStatus} | Ammo: ${totalAmmo}`, startX2 + 135, startY2);
             }
-            startY += 25;
+            startY2 += 30; 
         });
     }
     
