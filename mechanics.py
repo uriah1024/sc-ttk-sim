@@ -505,10 +505,12 @@ class DefenderLoadout:
                     self.is_destroyed = True
                     self.death_reason = "Power Plant Destroyed"
 
-            # 4. Check hull death if PP didn't already trigger destruction
+            # 4. Determine Death Condition
             if self.hull_parts[actual_vital_part]['hp'] <= 0 and not self.is_destroyed:
-                self.is_destroyed = True
-                self.death_reason = f"Hull Destroyed ({actual_vital_part.capitalize()})"
+                # If the ship has a Power Plant, it survives hull destruction to absorb bleed!
+                if not hasattr(self, 'pp_hp'): 
+                    self.is_destroyed = True
+                    self.death_reason = f"Hull Destroyed ({actual_vital_part.capitalize()})"
 
 class AttackerFCS:
     def __init__(self, mode, weapons, target_ship, engagement_dist, db):
