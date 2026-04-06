@@ -208,7 +208,7 @@ function draw() {
     tY += 30;
     if (activeVitals.length === 1) {
         let vPct = Math.max(0, activeVitals[0].hp / activeVitals[0].max);
-        ctx.fillStyle = '#cccccc'; ctx.fillText(`${activeVitals[0].name}: ${(vPct * 100).toFixed(1)}% 💚 ${activeVitals[0].hp}`, barX, tY);
+        ctx.fillStyle = '#cccccc'; ctx.fillText(`${activeVitals[0].name}: ${(vPct * 100).toFixed(1)}% 💚 ${activeVitals[0].hp.toFixed(0)}`, barX, tY);
         ctx.fillStyle = '#333333'; ctx.fillRect(barX, tY + 5, barWidth, 8);
         ctx.fillStyle = '#00ff00'; ctx.fillRect(barX, tY + 5, barWidth * vPct, 8);
         tY += 10;
@@ -230,7 +230,7 @@ function draw() {
             ctx.fillStyle = '#00ff00'; ctx.fillRect(vBarX, tY - 9, vBarWidth * vPct, 8);
             
             ctx.fillStyle = '#aaaaaa';
-            ctx.fillText(`${(vPct*100).toFixed(0)}% 💚 ${vital.hp}`, vBarX + vBarWidth + 10, tY); 
+            ctx.fillText(`${(vPct*100).toFixed(0)}% 💚 ${vital.hp.toFixed(0)}`, vBarX + vBarWidth + 10, tY); 
         });
         tY += 5;
         ctx.font = '14px Arial'; 
