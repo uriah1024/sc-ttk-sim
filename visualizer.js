@@ -59,14 +59,7 @@ function draw() {
     
 // --- UI BARS: TARGET SHIP STATS ---
     const barWidth = 120;
-    const barX = canvas.width - 290;
-    
-    // Calculate dynamic height for the background box based on shield type
-    let targetHudHeight = (shieldFaces === 4) ? 235 : 160;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(barX - 10, 10, 260, targetHudHeight);
-
-    let tY = 25; // Adjusted starting Y to pad inside the box
+    const barX = canvas.width - 290; // Keeping your original X position!
 
     // --- DETERMINE ACTIVE WEAPON TYPES ---
     let hasBallistic = false;
@@ -77,6 +70,34 @@ function draw() {
         if (w[0] === 1) hasEnergy = true; 
         if (w[0] === 2) hasDistortion = true; 
     });
+
+    // --- EXACT HULL DATA EXTRACTION ---
+    let activeVitals = [];
+    if (frame.hhp !== undefined) {
+        const hhpMax = frame.hhp_max || { body: 1000, nose: -1, tail: -1 }; 
+        if (frame.hhp.body !== undefined && frame.hhp.body !== -1) activeVitals.push({ name: 'Body', hp: frame.hhp.body, max: hhpMax.body || 1 });
+        if (frame.hhp.nose !== undefined && frame.hhp.nose !== -1) activeVitals.push({ name: 'Nose', hp: frame.hhp.nose, max: hhpMax.nose || 1 });
+        if (frame.hhp.tail !== undefined && frame.hhp.tail !== -1) activeVitals.push({ name: 'Tail', hp: frame.hhp.tail, max: hhpMax.tail || 1 });
+    }
+
+    // --- TRUE DYNAMIC HUD HEIGHT ---
+    let targetHudHeight = 50; 
+    targetHudHeight += (shieldFaces === 4) ? 95 : 45; 
+    targetHudHeight += 40; 
+    
+    if (activeVitals.length === 1) {
+        targetHudHeight += 40; 
+    } else if (activeVitals.length > 1) {
+        targetHudHeight += (activeVitals.length * 20) + 20; 
+    }
+    
+    targetHudHeight += 45; 
+
+    // Draw the dynamically sized background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(barX - 10, 10, 260, targetHudHeight);
+
+    let tY = 25; 
 
     // SHIELD BAR
     const globalAvgS = (frame.s[0] + frame.s[1] + frame.s[2] + frame.s[3]) / 4.0;
@@ -104,7 +125,6 @@ function draw() {
                 ctx.fillStyle = '#00ffcc'; ctx.fillRect(quadBarX, tY + 1, quadBarWidth * frame.sr[i], 3);
             }
             
-            // Build the independent absorption text for this face (Ballistic only)
             let absText = "";
             if (hasBallistic) absText = `(${frame.sabp[i]}%) `;
 
@@ -146,7 +166,7 @@ function draw() {
         tY += 15;
     }
 
-    // ARMOR BAR WITH CONDITIONAL DYNAMIC COLORS & EMOJI
+    // ARMOR BAR WITH CONDITIONAL DYNAMIC COLORS
     tY += 30;
     ctx.fillStyle = '#cccccc'; 
     let armorText = `Armor: ${(frame.a * 100).toFixed(1)}% `;
@@ -158,7 +178,7 @@ function draw() {
         armorTextWidth += ctx.measureText(`(`).width;
         
         if (hasBallistic) {
-            ctx.fillStyle = '#ffaa00'; // Orange for physical
+            ctx.fillStyle = '#ffaa00'; 
             ctx.fillText(`${frame.atp}`, barX + armorTextWidth, tY);
             armorTextWidth += ctx.measureText(`${frame.atp}`).width;
         }
@@ -168,7 +188,7 @@ function draw() {
             armorTextWidth += ctx.measureText(` / `).width;
         }
         if (hasEnergy) {
-            ctx.fillStyle = '#ff4444'; // Red for energy
+            ctx.fillStyle = '#ff4444'; 
             ctx.fillText(`${frame.ate}`, barX + armorTextWidth, tY);
             armorTextWidth += ctx.measureText(`${frame.ate}`).width;
         }
@@ -178,19 +198,45 @@ function draw() {
         armorTextWidth += ctx.measureText(`) `).width;
     }
     
-    ctx.fillStyle = '#ffaa00'; // Match armor bar color
+    ctx.fillStyle = '#ffaa00'; 
     ctx.fillText(`🧡 ${frame.ahp}`, barX + armorTextWidth, tY);
 
     ctx.fillStyle = '#333333'; ctx.fillRect(barX, tY + 5, barWidth, 8);
     ctx.fillStyle = '#ffaa00'; ctx.fillRect(barX, tY + 5, barWidth * frame.a, 8);
 
-    // HULL HP BAR WITH GREEN COLOR & EMOJI
+    // HULL HP BAR WITH MULTIPLE VITAL PARTS
     tY += 30;
-    ctx.fillStyle = '#cccccc'; ctx.fillText(`Hull: ${(frame.h * 100).toFixed(1)}% 💚 ${frame.hhp}`, barX, tY);
-    ctx.fillStyle = '#333333'; ctx.fillRect(barX, tY + 5, barWidth, 8);
-    ctx.fillStyle = '#00ff00'; ctx.fillRect(barX, tY + 5, barWidth * frame.h, 8);
+    if (activeVitals.length === 1) {
+        let vPct = Math.max(0, activeVitals[0].hp / activeVitals[0].max);
+        ctx.fillStyle = '#cccccc'; ctx.fillText(`${activeVitals[0].name}: ${(vPct * 100).toFixed(1)}% 💚 ${activeVitals[0].hp}`, barX, tY);
+        ctx.fillStyle = '#333333'; ctx.fillRect(barX, tY + 5, barWidth, 8);
+        ctx.fillStyle = '#00ff00'; ctx.fillRect(barX, tY + 5, barWidth * vPct, 8);
+        tY += 10;
+    } else {
+        ctx.fillStyle = '#cccccc'; 
+        ctx.fillText(`Hull Vital Parts:`, barX, tY);
+        tY += 5;
+        activeVitals.forEach(vital => {
+            tY += 18; 
+            ctx.fillStyle = '#cccccc'; 
+            ctx.font = '12px Arial';
+            ctx.fillText(`${vital.name}:`, barX, tY);
+            
+            const vBarWidth = 90; 
+            const vBarX = barX + 40; 
+            let vPct = Math.max(0, vital.hp / vital.max);
+            
+            ctx.fillStyle = '#333333'; ctx.fillRect(vBarX, tY - 9, vBarWidth, 8);
+            ctx.fillStyle = '#00ff00'; ctx.fillRect(vBarX, tY - 9, vBarWidth * vPct, 8);
+            
+            ctx.fillStyle = '#aaaaaa';
+            ctx.fillText(`${(vPct*100).toFixed(0)}% 💚 ${vital.hp}`, vBarX + vBarWidth + 10, tY); 
+        });
+        tY += 5;
+        ctx.font = '14px Arial'; 
+    }
 
-    // POWER PLANT BAR WITH TEAL COLOR & EMOJI
+    // POWER PLANT BAR
     tY += 30;
     ctx.fillStyle = '#cccccc'; ctx.fillText(`P.Plant: ${(frame.pp * 100).toFixed(1)}% 🩵 ${frame.pphp}`, barX, tY);
     ctx.fillStyle = '#333333'; ctx.fillRect(barX, tY + 5, barWidth, 8);
