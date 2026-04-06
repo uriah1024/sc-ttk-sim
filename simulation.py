@@ -375,7 +375,8 @@ def simulate_visual_fight(attacker_1_weapons, attacker_2_weapons, target_ship, e
             "mshp": round(target_ship.max_shield_hp, 0),
             "tshp": round(max(0, target_ship.get_current_shield_hp()), 0), 
             "ahp": round(max(0, target_ship.armor_hp), 0),                 
-            "hhp": round(max(0, target_ship.hull_parts['body']['hp']), 0), 
+            "hhp": {k: v['hp'] for k, v in target_ship.hull_parts.items()},
+            "hhp_max": {k: v['max_hp'] for k, v in target_ship.hull_parts.items()},
             "pphp": round(max(0, target_ship.pp_hp), 0)                    
         })
         
