@@ -490,8 +490,23 @@ class DefenderLoadout:
             if actual_vital_part not in self.hull_parts:
                 actual_vital_part = list(self.hull_parts.keys())[0]
 
-            self.hull_parts[actual_vital_part]['hp'] -= d_hull_taken
-            if self.hull_parts[actual_vital_part]['hp'] <= 0:
+            # 1. Calculate actual damage and bleed (overflow)
+            vital_hp = self.hull_parts[actual_vital_part]['hp']
+            actual_hull_damage = min(d_hull_taken, max(0, vital_hp))
+            hull_bleed = max(0, d_hull_taken - actual_hull_damage)
+
+            # 2. Apply precise damage to the hull (this prevents the negative zero!)
+            self.hull_parts[actual_vital_part]['hp'] -= actual_hull_damage
+
+            # 3. Bleed excess damage directly into the Power Plant
+            if hull_bleed > 0 and hasattr(self, 'pp_hp'):
+                self.pp_hp -= hull_bleed
+                if self.pp_hp <= 0:
+                    self.is_destroyed = True
+                    self.death_reason = "Power Plant Destroyed"
+
+            # 4. Check hull death if PP didn't already trigger destruction
+            if self.hull_parts[actual_vital_part]['hp'] <= 0 and not self.is_destroyed:
                 self.is_destroyed = True
                 self.death_reason = f"Hull Destroyed ({actual_vital_part.capitalize()})"
 
