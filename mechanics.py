@@ -185,6 +185,22 @@ class DefenderLoadout:
             if nose_hp > 0: self.hull_parts['nose'] = {'hp': nose_hp, 'max_hp': nose_hp, 'parent': None, 'transfer_rate': 0.0, 'is_vital': True}
             if tail_hp > 0: self.hull_parts['tail'] = {'hp': tail_hp, 'max_hp': tail_hp, 'parent': None, 'transfer_rate': 0.0, 'is_vital': True}
 
+        # --- SANITIZE HULL PARTS ---
+        # Remove any parts that are blank, None, or 0 from the database
+        clean_hull = {}
+        for part_name, stats in self.hull_parts.items():
+            hp_val = stats.get('hp')
+            # Check if it's not None, not an empty string, and greater than 0
+            if hp_val is not None and str(hp_val).strip() != "" and float(hp_val) > 0:
+                clean_hull[part_name] = stats
+        
+        self.hull_parts = clean_hull
+
+        # Extreme safety fallback: If the database is completely empty for a ship,
+        # give it a 1 HP dummy body so the math engine doesn't divide-by-zero or crash.
+        if not self.hull_parts:
+            self.hull_parts = {'body': {'hp': 1, 'max_hp': 1}}
+            
         self.shield_slots = config_data.get('shield_count', 1)
         self.shield_faces = 1.0 
         
