@@ -446,16 +446,19 @@ class DefenderLoadout:
         d_final = d_pass * self.hull_mod[dmg_type]
 
         scale = (self.max_armor_hp - self.armor_hp) / self.max_armor_hp if self.max_armor_hp > 0 else 1.0
-        # --- DIAGNOSTIC TRAP ---
-        if actual_vital_part not in self.hull_parts:
-            print(f"\n--- FATAL MISMATCH DETECTED ---")
-            print(f"Target Ship: {getattr(self, 'name', 'Unknown')}")
-            print(f"The engine is trying to hit: '{actual_vital_part}'")
-            print(f"But the ONLY available hull parts are: {list(self.hull_parts.keys())}")
-            print(f"The raw dictionary looks like this: {self.hull_parts}")
-            print(f"-------------------------------\n")
+        
+        # --- SAFE DEATH CHECK ---
+        # 1. Figure out which part we are looking at (even if shields absorbed the hit)
+        part_to_check = hit_location
+        if 'actual_vital_part' in locals():
+            part_to_check = actual_vital_part
             
-        vital_dead = self.hull_parts[actual_vital_part]['hp'] <= 0
+        # 2. If the part we want to check doesn't exist on this ship, fallback to whatever vital part DOES exist
+        if part_to_check not in self.hull_parts:
+            part_to_check = list(self.hull_parts.keys())[0]
+
+        # 3. Safely evaluate if that part is dead
+        vital_dead = self.hull_parts[part_to_check]['hp'] <= 0
 
         comp_base = 0.0
         
