@@ -200,7 +200,7 @@ class DefenderLoadout:
         # give it a 1 HP dummy body so the math engine doesn't divide-by-zero or crash.
         if not self.hull_parts:
             self.hull_parts = {'body': {'hp': 1, 'max_hp': 1}}
-            
+
         self.shield_slots = config_data.get('shield_count', 1)
         self.shield_faces = 1.0 
         
@@ -446,7 +446,7 @@ class DefenderLoadout:
         d_final = d_pass * self.hull_mod[dmg_type]
 
         scale = (self.max_armor_hp - self.armor_hp) / self.max_armor_hp if self.max_armor_hp > 0 else 1.0
-        vital_dead = self.hull_parts['body']['hp'] <= 0
+        vital_dead = self.hull_parts[actual_vital_part]['hp'] <= 0
 
         comp_base = 0.0
         
