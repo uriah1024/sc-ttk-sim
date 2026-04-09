@@ -214,17 +214,17 @@ def run_tournament_engine(database, attacker_name, target_name, target_shield_na
     
     results = []
     
-    # --- TEMPORARILY COMMENT OUT MULTIPROCESSING ---
-    # with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_cores, initializer=init_worker) as executor:
-    #     chunk = max(1, len(unique_loadouts) // (cpu_cores * 4))
-    #     for res in executor.map(worker_func, unique_loadouts, chunksize=chunk):
-    #         results.append(res)
+    # --- MULTIPROCESSING ---
+    with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_cores, initializer=init_worker) as executor:
+        chunk = max(1, len(unique_loadouts) // (cpu_cores * 4))
+        for res in executor.map(worker_func, unique_loadouts, chunksize=chunk):
+            results.append(res)
 
-    # --- RUN SINGLE-THREADED TO CATCH THE BUG ---
-    init_worker() # Initialize any globals the worker normally needs
-    for loadout in unique_loadouts:
-        res = worker_func(loadout)
-        results.append(res)
+    # --- RUN SINGLE-THREADED ---
+    # init_worker() # Initialize any globals the worker normally needs
+    # for loadout in unique_loadouts:
+    #    res = worker_func(loadout)
+    #    results.append(res)
         
     results.sort(key=lambda x: x['ttk'])
     return results, intel_data, dummy_target.pp_depth, total_combos, None
