@@ -446,6 +446,15 @@ class DefenderLoadout:
         d_final = d_pass * self.hull_mod[dmg_type]
 
         scale = (self.max_armor_hp - self.armor_hp) / self.max_armor_hp if self.max_armor_hp > 0 else 1.0
+        # --- DIAGNOSTIC TRAP ---
+        if actual_vital_part not in self.hull_parts:
+            print(f"\n--- FATAL MISMATCH DETECTED ---")
+            print(f"Target Ship: {getattr(self, 'name', 'Unknown')}")
+            print(f"The engine is trying to hit: '{actual_vital_part}'")
+            print(f"But the ONLY available hull parts are: {list(self.hull_parts.keys())}")
+            print(f"The raw dictionary looks like this: {self.hull_parts}")
+            print(f"-------------------------------\n")
+            
         vital_dead = self.hull_parts[actual_vital_part]['hp'] <= 0
 
         comp_base = 0.0
