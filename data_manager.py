@@ -43,7 +43,7 @@ class GameDatabase:
         self.shields = self._load_csv(os.path.join(script_dir, 'shields.csv'), 'Shield_Name')
         self.weapons = self._load_csv(os.path.join(script_dir, 'weapons.csv'), 'Weapon_Name')
         self.ship_configs = self._load_ship_configs(os.path.join(script_dir, 'ship_configs.csv'))
-        
+        self.flight_data = self._load_flight_configs(os.path.join(script_dir, 'flight_controllers.csv'))
         self.power_plants = self._load_csv(os.path.join(script_dir, 'power_plants.csv'), 'PP_Name')
         self.ship_pp_configs = self._load_csv(os.path.join(script_dir, 'ship_power_distance.csv'), 'Ship_Name_PP_Key')
 
@@ -91,6 +91,34 @@ class GameDatabase:
                     'max_ammo_mod': DataTransformer.get_num(row.get('Max_Ammo_Mod')),
                     'max_regen_sec_mod': DataTransformer.get_num(row.get('Max_Regen_Sec_Mod'))
                 }
+        return configs
+    
+    def _load_flight_configs(self, filepath):
+        configs = {}
+        if not os.path.exists(filepath): return configs
+        
+        with open(filepath, mode='r', encoding='utf-8-sig') as f:
+            reader = csv.DictReader(f)
+            if reader.fieldnames:
+                reader.fieldnames = [str(col).strip().lstrip('\ufeff') for col in reader.fieldnames]
+                
+            for row in reader:
+                name = str(row.get('Ship', '')).strip()
+                
+                # Skip blank names or invalid entries
+                if not name or name == 'nan': 
+                    continue
+                
+                # We only need the first row per ship if there are duplicates
+                if name not in configs:
+                    configs[name] = {
+                        'scm_speed': DataTransformer.get_num(row.get('SCM')),
+                        'nav_speed': DataTransformer.get_num(row.get('NAV')),
+                        'base_accel_g': DataTransformer.get_num(row.get('Main')),
+                        'boost_accel_mult': DataTransformer.get_num(row.get('Boost_Main', 1.0)),
+                        # Temporary default until we calculate exact capacitor drain
+                        'boost_burn_time': 5.0 
+                    }
         return configs
 
 def get_ship_shield_size(ship_name, db):

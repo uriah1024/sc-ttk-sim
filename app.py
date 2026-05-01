@@ -11,6 +11,7 @@ import streamlit.components.v1 as components
 from data_manager import GameDatabase, DataTransformer, get_ship_shield_size, get_ship_pp_size, get_default_shield, get_default_pp
 from mechanics import Weapon, DefenderLoadout
 from simulation import run_tournament_engine, simulate_visual_fight
+from race_visualizer import render_drag_race
 
 # --- GLOBAL CSS OVERRIDES ---
 st.markdown("""
@@ -199,7 +200,7 @@ if __name__ == '__main__':
     attacker_options = sorted(list(db.ships.keys()))
     defender_options = sorted(list(db.ships.keys()))
 
-    tab_tourney, tab_sandbox, tab_visualizer = st.tabs(["🏆 Tournament Engine", "🔬 Penetration Sandbox", "🎬 Combat Visualizer"])
+    tab_tourney, tab_sandbox, tab_visualizer, tab_tools = st.tabs(["🏆 Tournament Engine", "🔬 Penetration Sandbox", "🎬 Combat Visualizer", "Drag Racer"])
     
     trigger_help = "Benchmark: Waits for full capacity.\nHuman: Estimates shield regen delays with human error margins.\nAI: Uses perfect math/distance tracking to keep shields down."
     
@@ -739,3 +740,50 @@ if __name__ == '__main__':
                             
                     except FileNotFoundError as e:
                         st.error(f"Error loading visualizer files: {e}")
+
+    # === TAB 4: DRAG RACER ===
+    with tab_tools:
+        st.header("Flight & Analysis Tools")
+        
+        # Create a 2-column layout for the side-menu and the main tool area
+        # A ratio of [1, 4] means the menu takes 20% of the screen, the tool takes 80%
+        col_menu, col_tool = st.columns([1, 4])
+        
+        with col_menu:
+            st.subheader("Select Tool")
+            selected_tool = st.radio("Available Tools", ["Drag Race Simulator", "Coming Soon..."], label_visibility="collapsed")
+            
+            if selected_tool == "Drag Race Simulator":
+                st.divider()
+                st.subheader("Race Settings")
+                
+                # Flight Mode Toggle
+                flight_mode = st.radio("Flight Mode", ["SCM", "Boosted SCM", "NAV"])
+                
+                # Max Time Slider (Determines how long the JS array needs to be)
+                sim_time = st.slider("Simulation Length (s)", min_value=10, max_value=120, value=30, step=10)
+                
+                st.divider()
+                st.subheader("Select Ships")
+                
+                # Generate checkboxes for all available ships in the flight data
+                available_ships = sorted(list(db.flight_data.keys()))
+                selected_ships = []
+                
+                # For phase 3, we just list them. In phase 4 we will categorize them!
+                for ship in available_ships:
+                    if st.checkbox(ship, key=f"drag_race_{ship}"):
+                        selected_ships.append(ship)
+        
+        with col_tool:
+            if selected_tool == "Drag Race Simulator":
+                st.subheader("Kinematics & Drag Race Simulator")
+                
+                if not selected_ships:
+                    st.info("👈 Select at least one ship from the sidebar to begin the simulation.")
+                else:
+                    # Call our new visualizer!
+                    render_drag_race(db, selected_ships, mode=flight_mode, max_time=sim_time)
+                    
+            elif selected_tool == "Coming Soon...":
+                st.write("Future tools will be placed here.")
