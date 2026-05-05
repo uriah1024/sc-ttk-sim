@@ -12,6 +12,7 @@ from data_manager import GameDatabase, DataTransformer, get_ship_shield_size, ge
 from mechanics import Weapon, DefenderLoadout
 from simulation import run_tournament_engine, simulate_visual_fight
 from race_visualizer import render_drag_race
+from aim_trainer import render_aim_trainer_poc
 
 # --- GLOBAL CSS OVERRIDES ---
 st.markdown("""
@@ -193,6 +194,19 @@ if __name__ == '__main__':
 
     db = load_db()
 
+    # --- FEATURE FLAGS ---
+    # Toggle these to True/False to instantly show/hide tabs
+    FEATURE_FLAGS = {
+        "🏆 Tournament Engine": True,
+        "🔬 Penetration Sandbox": False, # Hides Tab 2!
+        "🎬 Combat Visualizer": True,
+        "🚀 Drag Racer": True,
+        "🎯 Aim Trainer (PoC)": True
+    }
+
+    # Generate a list of ONLY the tabs that are flagged True
+    active_tabs = [name for name, is_active in FEATURE_FLAGS.items() if is_active]
+
     if not db.ships or not db.weapons:
         st.error("Missing CSV files! Ensure ships.csv, weapons.csv, etc., are in the same folder.")
         st.stop()
@@ -200,168 +214,493 @@ if __name__ == '__main__':
     attacker_options = sorted(list(db.ships.keys()))
     defender_options = sorted(list(db.ships.keys()))
 
-    tab_tourney, tab_sandbox, tab_visualizer, tab_tools = st.tabs(["🏆 Tournament Engine", "🔬 Penetration Sandbox", "🎬 Combat Visualizer", "Drag Racer"])
+    # Create the dynamic tabs and map them to their names
+    tabs = st.tabs(active_tabs)
+    tab_dict = dict(zip(active_tabs, tabs))
     
     trigger_help = "Benchmark: Waits for full capacity.\nHuman: Estimates shield regen delays with human error margins.\nAI: Uses perfect math/distance tracking to keep shields down."
     
     # === TAB 1: TOURNAMENT ENGINE ===
-    with tab_tourney:
-        col_t1_setup, col_t1_main = st.columns([1, 4], gap="large")
+    if "🏆 Tournament Engine" in tab_dict:
+        with tab_dict["🏆 Tournament Engine"]:
+            col_t1_setup, col_t1_main = st.columns([1, 4], gap="large")
         
-        with col_t1_setup:
-            st.subheader("⚙️ Match Setup")
-            t1_attacker = st.selectbox("Attacker Ship", attacker_options, index=attacker_options.index("F7A Hornet Mk II") if "F7A Hornet Mk II" in attacker_options else 0, key="t1_atk")
-            t1_target = st.selectbox("Target Ship", defender_options, index=defender_options.index("Arrow") if "Arrow" in defender_options else 0, key="t1_tgt")
-            
-            t1_shield, t1_pp = render_target_components("t1", t1_target, db)
-            
-            t1_dist = st.number_input("Engagement Distance (m)", value=500.0, step=100.0, key="t1_dst")
-            
-            run_btn = st.button("🚀 Run Tournament Simulator", type="primary", use_container_width=True)
-            st.button("↺ Reset Defaults", key="rst_t1", use_container_width=True, on_click=reset_tab_defaults, args=("t1", "t1_tgt"))
-            
-            st.divider()
-            
-            st.subheader("Rules & Filters")
-            t1_trigger = st.selectbox("Trigger Logic", ["Benchmark", "Human", "AI"], help=trigger_help, key="t1_trig")
-            t1_force = st.checkbox("Force Identical Sized Weapons", value=True, key="t1_frc")
-            t1_dmg = st.selectbox("Damage Preference", ["Any", "Energy", "Ballistic", "Distortion"], key="t1_dmg")
-            t1_vel = st.number_input("Velocity Floor (m/s)", value=0.0, step=100.0, key="t1_vel")
-            t1_armor = st.number_input("Min Pen Armor Cutoff (%)", value=0.0, step=10.0, key="t1_arm")
-            t1_banned = st.text_input("Banned Terms (Comma Separated)", value="scattergun, mass driver", key="t1_ban")
-            t1_whitelist = st.text_input("Force Weapons (e.g., 3:Panther)", key="t1_whi")
-            
-            banned_list = [x.strip() for x in t1_banned.split(',')] if t1_banned else []
-            whitelist_dict = {}
-            if t1_whitelist:
-                for pair in t1_whitelist.split(','):
-                    if ':' in pair:
-                        try:
-                            sz_str, name_str = pair.split(':', 1)
-                            whitelist_dict[int(sz_str.strip())] = [name_str.strip()]
-                        except ValueError:
-                            pass
-
-        with col_t1_main:
-            if run_btn:
-                actual_pp = None if t1_pp == "Default" else t1_pp
-                actual_shield = None if t1_shield == "None" else t1_shield
-                dmg_val = None if t1_dmg == "Any" else t1_dmg.lower()
+            with col_t1_setup:
+                st.subheader("⚙️ Match Setup")
+                t1_attacker = st.selectbox("Attacker Ship", attacker_options, index=attacker_options.index("F7A Hornet Mk II") if "F7A Hornet Mk II" in attacker_options else 0, key="t1_atk")
+                t1_target = st.selectbox("Target Ship", defender_options, index=defender_options.index("Arrow") if "Arrow" in defender_options else 0, key="t1_tgt")
                 
-                with st.spinner("Calculating combinations... Engaging Warp Drive..."):
-                    start_time = time.time()
-                    results, intel, pp_depth, total_combos, err = run_tournament_engine(
-                        database=db, attacker_name=t1_attacker, target_name=t1_target, 
-                        target_shield_name=actual_shield, target_pp_name=actual_pp, 
-                        engagement_distance=t1_dist, disallowed_terms=banned_list, 
-                        trigger_logic=t1_trigger, min_penetration_pct=t1_armor, 
-                        forced_weapons=whitelist_dict, min_ammo_speed=t1_vel, 
-                        weapon_type_filter=dmg_val, homogeneous_grouping=t1_force
-                    )
-                    elapsed = time.time() - start_time
-                    
-                if err:
-                    st.error(err)
-                else:
-                    st.success(f"Simulation complete! Evaluated {total_combos:,} loadouts in {elapsed:.2f} seconds.")
-                    
-                    df_data = []
-                    for r in results:
-                        ttk_val = f"{r['ttk']:.2f}s" if r['ttk'] != float('inf') else "FAILED"
-                        counts = collections.Counter(r['loadout'])
-                        pretty_loadout = ", ".join([f"{v}x {DataTransformer.clean_weapon_name(k)}" for k, v in counts.items()])
-                        
-                        df_data.append({
-                            "TTK": ttk_val,
-                            "Death Reason": r['reason'],
-                            "Velocity Dev": f"{r['speed_dev']:.0f} m/s",
-                            "Loadout": pretty_loadout,
-                            "Speed Float": r['speed_dev'], 
-                            "TTK Float": r['ttk']
-                        })
-                    
-                    df = pd.DataFrame(df_data)
-                    
-                    st.subheader("🏆 Top Loadouts (Overall)")
-                    top_10_df = df.drop(columns=["Speed Float"]).head(10)
-                    generate_interactive_ttk_chart(top_10_df, "Overall TTK Breakdown")
-                    generate_discord_copy_button(top_10_df.drop(columns=["TTK Float"]), "📋 Copy Top 10 to Discord")
-                    st.dataframe(top_10_df.drop(columns=["TTK Float"]), use_container_width=True, hide_index=True)
-
-                    # --- NEW: SAVE TOP 10 TOURNAMENT RESULTS TO SESSION STATE ---
-                    if not top_10_df.empty:
-                        top_loadouts_data = []
-                        # Iterate through the top 10 to save their raw data
-                        for idx, row in top_10_df.iterrows():
-                            # Safety check to ensure we don't go out of bounds of the results list
-                            if idx < len(results): 
-                                top_loadouts_data.append({
-                                    "rank": idx + 1,
-                                    "attacker": t1_attacker,
-                                    "target": t1_target,
-                                    "loadout": results[idx]['loadout'], # Raw weapon list
-                                    "ttk": row['TTK'],
-                                    "desc": row['Loadout'] # Pretty printed string
-                                })
-                        
-                        st.session_state.tournament_results = top_loadouts_data
-                    
-                    st.subheader("🏆 Top Loadouts (Velocity Matched < 60 m/s)")
-                    matched_df = df[df["Speed Float"] < 60.0]
-                    if matched_df.empty:
-                        st.info("No loadouts found with a velocity deviation under 60 m/s.")
-                    else:
-                        top_10_matched = matched_df.drop(columns=["Speed Float"]).head(10)
-                        generate_interactive_ttk_chart(top_10_matched, "Velocity Matched TTK Breakdown")
-                        generate_discord_copy_button(top_10_matched.drop(columns=["TTK Float"]), "📋 Copy Matched Top 10 to Discord")
-                        st.dataframe(top_10_matched.drop(columns=["TTK Float"]), use_container_width=True, hide_index=True)
-                    
-                    st.divider()
-    
-                    st.subheader("📊 Weapon Intelligence Report")
-                    intel_df = pd.DataFrame(intel)
-                    generate_discord_copy_button(intel_df, "📋 Copy Intel to Discord")
-                    st.dataframe(intel_df, use_container_width=True, hide_index=True)
-
-            else:
-                st.info("Configure your matchup on the left and click 'Run Tournament Simulator' to begin.")
-
-            # --- NEW: QUICK PLAYBACK (1v1) ---
-            if 'top_10_df' in st.session_state and 'tournament_results' in st.session_state:
-                st.dataframe(st.session_state.top_10_df)
+                t1_shield, t1_pp = render_target_components("t1", t1_target, db)
+                
+                t1_dist = st.number_input("Engagement Distance (m)", value=500.0, step=100.0, key="t1_dst")
+                
+                run_btn = st.button("🚀 Run Tournament Simulator", type="primary", use_container_width=True)
+                st.button("↺ Reset Defaults", key="rst_t1", use_container_width=True, on_click=reset_tab_defaults, args=("t1", "t1_tgt"))
+                
                 st.divider()
-                st.subheader("▶️ Quick Playback (1v1)")
-                st.markdown("Select a loadout from the Top 10 to instantly visualize its 1v1 performance.")
                 
-                playback_options = {f"Rank {d['rank']}: {d['desc']} ({d['ttk']})": d for d in st.session_state.tournament_results}
-                selected_playback_str = st.selectbox("Select Loadout for Playback:", list(playback_options.keys()), key="t1_play_sel")
+                st.subheader("Rules & Filters")
+                t1_trigger = st.selectbox("Trigger Logic", ["Benchmark", "Human", "AI"], help=trigger_help, key="t1_trig")
+                t1_force = st.checkbox("Force Identical Sized Weapons", value=True, key="t1_frc")
+                t1_dmg = st.selectbox("Damage Preference", ["Any", "Energy", "Ballistic", "Distortion"], key="t1_dmg")
+                t1_vel = st.number_input("Velocity Floor (m/s)", value=0.0, step=100.0, key="t1_vel")
+                t1_armor = st.number_input("Min Pen Armor Cutoff (%)", value=0.0, step=10.0, key="t1_arm")
+                t1_banned = st.text_input("Banned Terms (Comma Separated)", value="scattergun, mass driver", key="t1_ban")
+                t1_whitelist = st.text_input("Force Weapons (e.g., 3:Panther)", key="t1_whi")
                 
-                if st.button("🎬 Render Quick Playback", use_container_width=True):
-                    sel_data = playback_options[selected_playback_str]
-                    
-                    # We must recalculate these here since we are outside the run_btn block
+                banned_list = [x.strip() for x in t1_banned.split(',')] if t1_banned else []
+                whitelist_dict = {}
+                if t1_whitelist:
+                    for pair in t1_whitelist.split(','):
+                        if ':' in pair:
+                            try:
+                                sz_str, name_str = pair.split(':', 1)
+                                whitelist_dict[int(sz_str.strip())] = [name_str.strip()]
+                            except ValueError:
+                                pass
+
+            with col_t1_main:
+                if run_btn:
                     actual_pp = None if t1_pp == "Default" else t1_pp
                     actual_shield = None if t1_shield == "None" else t1_shield
+                    dmg_val = None if t1_dmg == "Any" else t1_dmg.lower()
                     
-                    # 1. Setup 1v1 Target
-                    vis_target = DefenderLoadout(t1_target, db, actual_pp)
+                    with st.spinner("Calculating combinations... Engaging Warp Drive..."):
+                        start_time = time.time()
+                        results, intel, pp_depth, total_combos, err = run_tournament_engine(
+                            database=db, attacker_name=t1_attacker, target_name=t1_target, 
+                            target_shield_name=actual_shield, target_pp_name=actual_pp, 
+                            engagement_distance=t1_dist, disallowed_terms=banned_list, 
+                            trigger_logic=t1_trigger, min_penetration_pct=t1_armor, 
+                            forced_weapons=whitelist_dict, min_ammo_speed=t1_vel, 
+                            weapon_type_filter=dmg_val, homogeneous_grouping=t1_force
+                        )
+                        elapsed = time.time() - start_time
+                        
+                    if err:
+                        st.error(err)
+                    else:
+                        st.success(f"Simulation complete! Evaluated {total_combos:,} loadouts in {elapsed:.2f} seconds.")
+                        
+                        df_data = []
+                        for r in results:
+                            ttk_val = f"{r['ttk']:.2f}s" if r['ttk'] != float('inf') else "FAILED"
+                            counts = collections.Counter(r['loadout'])
+                            pretty_loadout = ", ".join([f"{v}x {DataTransformer.clean_weapon_name(k)}" for k, v in counts.items()])
+                            
+                            df_data.append({
+                                "TTK": ttk_val,
+                                "Death Reason": r['reason'],
+                                "Velocity Dev": f"{r['speed_dev']:.0f} m/s",
+                                "Loadout": pretty_loadout,
+                                "Speed Float": r['speed_dev'], 
+                                "TTK Float": r['ttk']
+                            })
+                        
+                        df = pd.DataFrame(df_data)
+                        
+                        st.subheader("🏆 Top Loadouts (Overall)")
+                        top_10_df = df.drop(columns=["Speed Float"]).head(10)
+                        generate_interactive_ttk_chart(top_10_df, "Overall TTK Breakdown")
+                        generate_discord_copy_button(top_10_df.drop(columns=["TTK Float"]), "📋 Copy Top 10 to Discord")
+                        st.dataframe(top_10_df.drop(columns=["TTK Float"]), use_container_width=True, hide_index=True)
+
+                        # --- NEW: SAVE TOP 10 TOURNAMENT RESULTS TO SESSION STATE ---
+                        if not top_10_df.empty:
+                            top_loadouts_data = []
+                            # Iterate through the top 10 to save their raw data
+                            for idx, row in top_10_df.iterrows():
+                                # Safety check to ensure we don't go out of bounds of the results list
+                                if idx < len(results): 
+                                    top_loadouts_data.append({
+                                        "rank": idx + 1,
+                                        "attacker": t1_attacker,
+                                        "target": t1_target,
+                                        "loadout": results[idx]['loadout'], # Raw weapon list
+                                        "ttk": row['TTK'],
+                                        "desc": row['Loadout'] # Pretty printed string
+                                    })
+                            
+                            st.session_state.tournament_results = top_loadouts_data
+                        
+                        st.subheader("🏆 Top Loadouts (Velocity Matched < 60 m/s)")
+                        matched_df = df[df["Speed Float"] < 60.0]
+                        if matched_df.empty:
+                            st.info("No loadouts found with a velocity deviation under 60 m/s.")
+                        else:
+                            top_10_matched = matched_df.drop(columns=["Speed Float"]).head(10)
+                            generate_interactive_ttk_chart(top_10_matched, "Velocity Matched TTK Breakdown")
+                            generate_discord_copy_button(top_10_matched.drop(columns=["TTK Float"]), "📋 Copy Matched Top 10 to Discord")
+                            st.dataframe(top_10_matched.drop(columns=["TTK Float"]), use_container_width=True, hide_index=True)
+                        
+                        st.divider()
+        
+                        st.subheader("📊 Weapon Intelligence Report")
+                        intel_df = pd.DataFrame(intel)
+                        generate_discord_copy_button(intel_df, "📋 Copy Intel to Discord")
+                        st.dataframe(intel_df, use_container_width=True, hide_index=True)
+
+                else:
+                    st.info("Configure your matchup on the left and click 'Run Tournament Simulator' to begin.")
+
+                # --- NEW: QUICK PLAYBACK (1v1) ---
+                if 'top_10_df' in st.session_state and 'tournament_results' in st.session_state:
+                    st.dataframe(st.session_state.top_10_df)
+                    st.divider()
+                    st.subheader("▶️ Quick Playback (1v1)")
+                    st.markdown("Select a loadout from the Top 10 to instantly visualize its 1v1 performance.")
+                    
+                    playback_options = {f"Rank {d['rank']}: {d['desc']} ({d['ttk']})": d for d in st.session_state.tournament_results}
+                    selected_playback_str = st.selectbox("Select Loadout for Playback:", list(playback_options.keys()), key="t1_play_sel")
+                    
+                    if st.button("🎬 Render Quick Playback", use_container_width=True):
+                        sel_data = playback_options[selected_playback_str]
+                        
+                        # We must recalculate these here since we are outside the run_btn block
+                        actual_pp = None if t1_pp == "Default" else t1_pp
+                        actual_shield = None if t1_shield == "None" else t1_shield
+                        
+                        # 1. Setup 1v1 Target
+                        vis_target = DefenderLoadout(t1_target, db, actual_pp)
+                        vis_target.equip_shields(actual_shield, db)
+                        shield_faces_val = getattr(vis_target, 'shield_faces', 1.0)
+                        
+                        # 2. Setup 1v1 Attacker Weapons
+                        a1_ammo_mod = db.ship_configs[t1_attacker].get('max_ammo_mod', 1.0)
+                        a1_regen_mod = db.ship_configs[t1_attacker].get('max_regen_sec_mod', 1.0)
+                        vis_weapons_1 = [Weapon(db.weapons[w], a1_ammo_mod, a1_regen_mod) for w in sel_data['loadout']]
+                        vis_weapons_2 = [] # Strict 1v1
+                        
+                        with st.spinner(f"Rendering Playback for Rank {sel_data['rank']}..."):
+                            frames, final_ttk, death_reason, combat_log = simulate_visual_fight(
+                                vis_weapons_1, vis_weapons_2, vis_target, 
+                                engagement_distance=t1_dist, 
+                                trigger_1=t1_trigger,
+                                trigger_2="Benchmark", # Irrelevant for 1v1
+                                angle_1="Front",
+                                angle_2="Front",
+                                db=db
+                            )
+                            
+                        if len(frames) == 0:
+                            st.error("Simulation failed to generate frames.")
+                        else:
+                            st.success(f"Render Complete! TTK: {final_ttk:.2f}s ({death_reason})")
+                            json_frames = json.dumps(frames)
+                            canvas_w = 900 # 1v1 size
+                            
+                            try:
+                                # Load Templates
+                                with open("visualizer.html", "r", encoding="utf-8") as f_html:
+                                    html_template = f_html.read()
+                                with open("visualizer.js", "r", encoding="utf-8") as f_js:
+                                    js_logic = f_js.read()
+                                    
+                                # Load custom images safely
+                                art_folder = os.path.join("Art", "Ship Art")
+                                bg_img = get_base64_image(os.path.join(art_folder, "background.jpg"))
+                                tgt_img = get_base64_image(os.path.join(art_folder, "target_ship.png"))
+                                a1_img = get_base64_image(os.path.join(art_folder, "attacker1.png"))
+                                a2_img = "" # No Wingman
+                                    
+                                data_script = f"""
+                                <script>
+                                    const SIM_DATA = {{
+                                        frames: {json_frames},
+                                        initialDistance: {t1_dist},
+                                        shieldFaces: {int(shield_faces_val)},
+                                        images: {{
+                                            bg: {json.dumps(bg_img)},
+                                            target: {json.dumps(tgt_img)},
+                                            a1: {json.dumps(a1_img)},
+                                            a2: {json.dumps(a2_img)}
+                                        }}
+                                    }};
+                                </script>
+                                """
+                                
+                                logic_script = f"<script>\n{js_logic}\n</script>"
+                                final_html = html_template.replace("__CANVAS_W__", str(canvas_w)) \
+                                                        .replace("__DATA_INJECTION__", data_script) \
+                                                        .replace("__JS_INJECTION__", logic_script)
+                                                        
+                                components.html(final_html, height=650, scrolling=True)
+
+                                # --- RENDER COMBAT TELEMETRY LOG ---
+                                st.subheader("📡 Combat Telemetry Log")
+                                for entry in combat_log:
+                                    st.markdown(f"<span style='color: {entry['color']}; font-family: monospace; font-size: 1rem;'><b>[{entry['t']:.2f}s]</b> - {entry['msg']}</span>", unsafe_allow_html=True)
+                                    
+                            except FileNotFoundError as e:
+                                st.error(f"Error loading visualizer files: {e}")
+
+    # === TAB 2: PENETRATION SANDBOX ===
+    if "🔬 Penetration Sandbox" in tab_dict:
+        with tab_dict["🔬 Penetration Sandbox"]:
+            col_t2_setup, col_t2_main = st.columns([1, 4], gap="large")
+        
+            with col_t2_setup:
+                st.subheader("⚙️ Match Setup")
+                t2_target = st.selectbox("Target Ship", defender_options, index=defender_options.index("Arrow") if "Arrow" in defender_options else 0, key="t2_tgt")
+                t2_shield, t2_pp = render_target_components("t2", t2_target, db)
+                
+                st.button("↺ Reset Defaults", key="rst_t2", use_container_width=True, on_click=reset_tab_defaults, args=("t2", "t2_tgt"))
+
+                st.divider()
+                st.subheader("Test Parameters")
+                sandbox_weapon_name = st.selectbox("Detail Test Weapon", sorted(list(db.weapons.keys())))
+                sandbox_shield_pct = st.slider("Current Shield %", 0.0, 100.0, 100.0, step=1.0)
+                sandbox_armor_pct = st.slider("Current Armor %", 0.0, 100.0, 100.0, step=1.0)
+                t2_attacker = st.selectbox("Attacker Ship (For Fleet Chart)", attacker_options, index=attacker_options.index("F7A Hornet Mk II") if "F7A Hornet Mk II" in attacker_options else 0, key="t2_atk")
+
+            with col_t2_main:
+                st.header("Interactive Penetration Sandbox")
+                st.write("Adjust the target's remaining Shield and Armor % on the left to visualize exactly when weapons will overcome deflection and breach the Power Plant depth.")
+                
+                sb_target = DefenderLoadout(t2_target, db, None if t2_pp == "Default" else t2_pp)
+                sb_target.equip_shields(None if t2_shield == "None" else t2_shield, db)
+                
+                sb_weapon = Weapon(db.weapons[sandbox_weapon_name], 1.0, 1.0)
+                
+                if sb_weapon.damage_type == 'distortion':
+                    st.warning("Distortion weapons bypass physical geometry completely and attack the shield generator directly.")
+                else:
+                    shield_ratio = sandbox_shield_pct / 100.0
+                    d_active = sb_weapon.alpha_damage * (1.0 - sb_target.shield_resist.get(sb_weapon.damage_type, 0.0))
+                    
+                    if shield_ratio > 0 and sb_target.max_shield_hp > 0:
+                        abs_min = sb_target.shield_absorp_min[sb_weapon.damage_type]
+                        abs_max = sb_target.shield_absorp_max[sb_weapon.damage_type]
+                        absorp_current = abs_min + (abs_max - abs_min) * shield_ratio
+                        d_pass = d_active * (1.0 - absorp_current)
+                    else:
+                        d_pass = d_active
+                        
+                    current_armor_ratio = sandbox_armor_pct / 100.0
+                    current_deflection = sb_target.deflection.get(sb_weapon.damage_type, 0.0) * current_armor_ratio
+                    
+                    scale = 1.0 - current_armor_ratio
+                    current_pen_depth = sb_weapon.max_pen * scale
+                    pp_target_depth = sb_target.pp_depth
+                    
+                    bites_armor = d_pass >= current_deflection
+                    strikes_pp = current_pen_depth >= pp_target_depth
+                    
+                    col_res1, col_res2 = st.columns(2)
+                    with col_res1:
+                        st.metric(f"{DataTransformer.clean_weapon_name(sandbox_weapon_name)} vs Deflection", 
+                                f"{d_pass:.1f} dmg vs {current_deflection:.1f} defl", 
+                                "Deflected" if not bites_armor else "Bites Armor",
+                                delta_color="inverse" if not bites_armor else "normal")
+                    with col_res2:
+                        st.metric("Penetration vs PP Depth", 
+                                f"{current_pen_depth:.2f}m / {pp_target_depth:.2f}m",
+                                "Sniped" if strikes_pp else "Too Shallow",
+                            delta_color="normal" if strikes_pp else "inverse")
+                        
+                    st.markdown("### Individual Depth Visualizer")
+                    
+                    visual_max = max(sb_weapon.max_pen, pp_target_depth) * 1.1
+                    if visual_max == 0: visual_max = 1.0
+                    
+                    pen_fill_pct = (current_pen_depth / visual_max) * 100.0
+                    pp_marker_pct = (pp_target_depth / visual_max) * 100.0
+                    bar_color = "#00cc44" if strikes_pp else "#0088ff"
+                    
+                    custom_html = f"""
+                    <div style="width: 100%; max-width: 800px; background-color: #2b2b36; height: 40px; position: relative; border-radius: 5px; overflow: hidden; border: 1px solid #555;">
+                    <div style="position: absolute; left: 0; top: 0; height: 100%; width: {pen_fill_pct}%; background-color: {bar_color}; border-radius: 5px 0 0 5px; transition: width 0.3s ease;"></div>
+                    <div style="position: absolute; left: {pp_marker_pct}%; top: 0; height: 100%; width: 4px; background-color: #ff3333; z-index: 10;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; max-width: 800px; font-size: 12px; color: #aaa; margin-top: 5px;">
+                        <span>0m (Hull Exterior)</span>
+                        <span>Power Plant Depth: <span style="color: #ff3333; font-weight: bold;">{pp_target_depth:.2f}m</span></span>
+                        <span>Max Visual Depth: {visual_max:.1f}m</span>
+                    </div>
+                    """
+                    st.markdown(custom_html, unsafe_allow_html=True)
+                    
+                    if strikes_pp:
+                        st.success(f"💥 At {sandbox_armor_pct}% Armor, the {DataTransformer.clean_weapon_name(sandbox_weapon_name)} breaches {current_pen_depth:.2f}m deep, successfully striking the Power Plant.")
+                    else:
+                        st.warning(f"🛡️ At {sandbox_armor_pct}% Armor, the {DataTransformer.clean_weapon_name(sandbox_weapon_name)} only penetrates {current_pen_depth:.2f}m. You must lower the armor further to reach the {pp_target_depth:.2f}m target.")
+        
+                st.divider()
+                st.markdown(f"### Fleet-Wide Penetration Potential for {t2_attacker}")
+                
+                attacker_sizes = set(db.ship_configs[t2_attacker].get('hardpoints', []))
+                chart_data = []
+                
+                for w_name, w_data in db.weapons.items():
+                    w = Weapon(w_data, 1.0, 1.0)
+                    if w.size not in attacker_sizes: continue
+                    if w.damage_type == 'distortion': continue 
+                    
+                    c_d_active = w.alpha_damage * (1.0 - sb_target.shield_resist.get(w.damage_type, 0.0))
+                    if shield_ratio > 0 and sb_target.max_shield_hp > 0:
+                        c_abs_min = sb_target.shield_absorp_min[w.damage_type]
+                        c_abs_max = sb_target.shield_absorp_max[w.damage_type]
+                        c_absorp_current = c_abs_min + (c_abs_max - c_abs_min) * shield_ratio
+                        c_d_pass = c_d_active * (1.0 - c_absorp_current)
+                    else:
+                        c_d_pass = c_d_active
+                        
+                    c_current_deflection = sb_target.deflection.get(w.damage_type, 0.0) * current_armor_ratio
+                    c_bites_armor = c_d_pass >= c_current_deflection
+                    c_current_pen = (w.max_pen * scale) if c_bites_armor else 0.0
+                    
+                    chart_data.append({
+                        "Weapon": DataTransformer.clean_weapon_name(w_name),
+                        "Current Pen (m)": round(c_current_pen, 2),
+                        "Type": w.damage_type.capitalize(),
+                        "Bites Armor": c_bites_armor
+                    })
+                    
+                chart_df = pd.DataFrame(chart_data)
+                if not chart_df.empty:
+                    base = alt.Chart(chart_df).encode(
+                        y=alt.Y('Weapon:N', sort='-x', title=None)
+                    )
+                    bars = base.mark_bar().encode(
+                        x=alt.X('Current Pen (m):Q', title=f'Current Penetration Depth at {sandbox_armor_pct}% Armor'),
+                        color=alt.Color('Type:N', scale=alt.Scale(domain=['Ballistic', 'Energy'], range=['#ffaa00', '#00ffff'])),
+                        tooltip=['Weapon', 'Type', 'Current Pen (m)', 'Bites Armor']
+                    )
+                    rule = alt.Chart(pd.DataFrame({'x': [pp_target_depth]})).mark_rule(color='#ff3333', strokeWidth=3, strokeDash=[5, 5]).encode(x='x:Q')
+                    st.altair_chart((bars + rule).properties(height=max(150, len(chart_df)*30)), use_container_width=True)
+
+    # === TAB 3: COMBAT VISUALIZER (FLEET MODE) ===
+    if "🎬 Combat Visualizer" in tab_dict:
+        with tab_dict["🎬 Combat Visualizer"]:
+            col_t3_setup, col_t3_main = st.columns([1, 4], gap="large")
+        
+            with col_t3_setup:
+                st.subheader("⚙️ Match Setup")
+                t3_target = st.selectbox("Target Ship", defender_options, index=defender_options.index("Arrow") if "Arrow" in defender_options else 0, key="t3_tgt")
+                
+                t3_shield, t3_pp = render_target_components("t3", t3_target, db)
+                t3_dist = st.number_input("Engagement Distance (m)", value=500.0, step=100.0, key="t3_dst")
+                
+                run_render = st.button("🎬 Generate Battle Render", type="primary", use_container_width=True)
+                st.button("↺ Reset Target", key="rst_t3", use_container_width=True, on_click=reset_tab_defaults, args=("t3", "t3_tgt"))
+                
+                st.divider()
+                
+                # --- ATTACKER 1 (LEAD) ---
+                st.markdown("### 🟢 Attacker 1 (Lead)")
+                
+                # --- NEW: TOURNAMENT HANDOFF LOGIC (TOP 10) ---
+                if 'tournament_results' in st.session_state and st.session_state.tournament_results:
+                    tourney_data = st.session_state.tournament_results
+                    st.info(f"🏆 Recent Tournament: **{tourney_data[0]['attacker']}** vs **{tourney_data[0]['target']}**")
+                    
+                    # Create a dictionary to map the dropdown strings to the actual data dictionaries
+                    dropdown_options = {f"Rank {d['rank']}: {d['desc']} ({d['ttk']})": d for d in tourney_data}
+                    
+                    # Render the dropdown
+                    selected_tourney_string = st.selectbox(
+                        "Select a Loadout to Visualize:", 
+                        list(dropdown_options.keys()), 
+                        key="t3_tourney_select"
+                    )
+                    
+                    def load_selected_callback():
+                        # Grab the data tied to the user's current dropdown selection
+                        sel_data = dropdown_options[st.session_state.t3_tourney_select]
+                        
+                        # Force the UI to match the winning ship
+                        st.session_state['t3_atk1'] = sel_data['attacker']
+                        st.session_state['t3_tgt'] = sel_data['target']
+                        st.session_state['t3_frc1'] = False # Disable forced identical groups
+                        
+                        # Map the winning loadout back into the individual slot keys
+                        hp_list = db.ship_configs[sel_data['attacker']]['hardpoints']
+                        for i, hp_size in enumerate(hp_list):
+                            if i < len(sel_data['loadout']):
+                                st.session_state[f"vis_hp1_{i}"] = sel_data['loadout'][i]
+
+                    st.button("⏬ Auto-Load Selected Loadout", on_click=load_selected_callback, type="primary", use_container_width=True)
+                # --- END HANDOFF LOGIC ---
+
+                t3_attacker_1 = st.selectbox("Ship", attacker_options, index=attacker_options.index("F7A Hornet Mk II") if "F7A Hornet Mk II" in attacker_options else 0, key="t3_atk1")
+                t3_trigger_1 = st.selectbox("Trigger Logic (A1)", ["Benchmark", "Human", "AI"], help=trigger_help, key="t3_trig1")
+                t3_angle_1 = st.selectbox("Attack Angle (A1)", ["Front", "Right", "Rear", "Left"], key="t3_ang1")
+                t3_force_1 = st.checkbox("Force Identical Weapons (A1)", value=True, key="t3_frc1")
+                
+                a1_ammo_mod = db.ship_configs[t3_attacker_1].get('max_ammo_mod', 1.0)
+                a1_regen_mod = db.ship_configs[t3_attacker_1].get('max_regen_sec_mod', 1.0)
+                attacker_hp_1 = db.ship_configs[t3_attacker_1]['hardpoints']
+                selected_weapons_1 = []
+                
+                if t3_force_1:
+                    hp_counts_1 = collections.Counter(attacker_hp_1)
+                    for hp_size, count in sorted(hp_counts_1.items(), reverse=True):
+                        valid_w = [w for w, d in db.weapons.items() if hp_size - 1 <= DataTransformer.get_num(d.get('Weapon_Size')) <= hp_size]
+                        default_idx = valid_w.index("Panther Repeater") if valid_w and "Panther Repeater" in valid_w and hp_size >= 3 else 0
+                        w_choice = st.selectbox(f"{count}x Size {hp_size} Mounts", sorted(valid_w), index=default_idx, key=f"vis_hp1_grp_{hp_size}")
+                        selected_weapons_1.extend([w_choice] * count) 
+                else:
+                    for i, hp_size in enumerate(attacker_hp_1):
+                        valid_w = [w for w, d in db.weapons.items() if hp_size - 1 <= DataTransformer.get_num(d.get('Weapon_Size')) <= hp_size]
+                        default_idx = valid_w.index("Panther Repeater") if valid_w and "Panther Repeater" in valid_w and hp_size >= 3 else 0
+                        w_choice = st.selectbox(f"Slot {i+1} (S{hp_size})", sorted(valid_w), index=default_idx, key=f"vis_hp1_{i}")
+                        selected_weapons_1.append(w_choice)
+
+                st.divider()
+
+                # --- ATTACKER 2 (WINGMAN) ---
+                st.markdown("### 🔵 Attacker 2 (Wingman)")
+                attacker_options_with_none = ["None"] + attacker_options
+                t3_attacker_2 = st.selectbox("Ship", attacker_options_with_none, index=0, key="t3_atk2")
+                
+                selected_weapons_2 = []
+                if t3_attacker_2 != "None":
+                    t3_trigger_2 = st.selectbox("Trigger Logic (A2)", ["Benchmark", "Human", "AI"], help=trigger_help, key="t3_trig2")
+                    t3_angle_2 = st.selectbox("Attack Angle (A2)", ["Front", "Right", "Rear", "Left"], index=1, key="t3_ang2")
+                    t3_force_2 = st.checkbox("Force Identical Weapons (A2)", value=True, key="t3_frc2")
+                    
+                    a2_ammo_mod = db.ship_configs[t3_attacker_2].get('max_ammo_mod', 1.0)
+                    a2_regen_mod = db.ship_configs[t3_attacker_2].get('max_regen_sec_mod', 1.0)
+                    attacker_hp_2 = db.ship_configs[t3_attacker_2]['hardpoints']
+                    if t3_force_2:
+                        hp_counts_2 = collections.Counter(attacker_hp_2)
+                        for hp_size, count in sorted(hp_counts_2.items(), reverse=True):
+                            valid_w = [w for w, d in db.weapons.items() if hp_size - 1 <= DataTransformer.get_num(d.get('Weapon_Size')) <= hp_size]
+                            default_idx = valid_w.index("Panther Repeater") if valid_w and "Panther Repeater" in valid_w and hp_size >= 3 else 0
+                            w_choice = st.selectbox(f"{count}x Size {hp_size} Mounts", sorted(valid_w), index=default_idx, key=f"vis_hp2_grp_{hp_size}")
+                            selected_weapons_2.extend([w_choice] * count) 
+                    else:
+                        for i, hp_size in enumerate(attacker_hp_2):
+                            valid_w = [w for w, d in db.weapons.items() if hp_size - 1 <= DataTransformer.get_num(d.get('Weapon_Size')) <= hp_size]
+                            default_idx = valid_w.index("Panther Repeater") if valid_w and "Panther Repeater" in valid_w and hp_size >= 3 else 0
+                            w_choice = st.selectbox(f"Slot {i+1} (S{hp_size})", sorted(valid_w), index=default_idx, key=f"vis_hp2_{i}")
+                            selected_weapons_2.append(w_choice)
+                else:
+                    t3_trigger_2 = "Benchmark"
+                    t3_angle_2 = 'Front'
+
+            with col_t3_main:
+                st.header("Interactive Combat Playback")
+                if run_render:
+                    actual_pp = None if t3_pp == "Default" else t3_pp
+                    actual_shield = None if t3_shield == "None" else t3_shield
+                    
+                    vis_target = DefenderLoadout(t3_target, db, actual_pp)
                     vis_target.equip_shields(actual_shield, db)
                     shield_faces_val = getattr(vis_target, 'shield_faces', 1.0)
                     
-                    # 2. Setup 1v1 Attacker Weapons
-                    a1_ammo_mod = db.ship_configs[t1_attacker].get('max_ammo_mod', 1.0)
-                    a1_regen_mod = db.ship_configs[t1_attacker].get('max_regen_sec_mod', 1.0)
-                    vis_weapons_1 = [Weapon(db.weapons[w], a1_ammo_mod, a1_regen_mod) for w in sel_data['loadout']]
-                    vis_weapons_2 = [] # Strict 1v1
+                    vis_weapons_1 = [Weapon(db.weapons[w], a1_ammo_mod, a1_regen_mod) for w in selected_weapons_1]
+                    vis_weapons_2 = [Weapon(db.weapons[w], a2_ammo_mod, a2_regen_mod) for w in selected_weapons_2] if t3_attacker_2 != "None" else []
                     
-                    with st.spinner(f"Rendering Playback for Rank {sel_data['rank']}..."):
+                    with st.spinner("Rendering Physics..."):
+                        # Unpack the 4 variables now
                         frames, final_ttk, death_reason, combat_log = simulate_visual_fight(
                             vis_weapons_1, vis_weapons_2, vis_target, 
-                            engagement_distance=t1_dist, 
-                            trigger_1=t1_trigger,
-                            trigger_2="Benchmark", # Irrelevant for 1v1
-                            angle_1="Front",
-                            angle_2="Front",
+                            engagement_distance=t3_dist, 
+                            trigger_1=t3_trigger_1,
+                            trigger_2=t3_trigger_2,
+                            angle_1=t3_angle_1,
+                            angle_2=t3_angle_2,
                             db=db
                         )
                         
@@ -369,11 +708,12 @@ if __name__ == '__main__':
                         st.error("Simulation failed to generate frames.")
                     else:
                         st.success(f"Render Complete! TTK: {final_ttk:.2f}s ({death_reason})")
+                        
                         json_frames = json.dumps(frames)
-                        canvas_w = 900 # 1v1 size
+                        canvas_w = 1100 if t3_attacker_2 != "None" else 900
                         
                         try:
-                            # Load Templates
+                            # 1. Load Templates
                             with open("visualizer.html", "r", encoding="utf-8") as f_html:
                                 html_template = f_html.read()
                             with open("visualizer.js", "r", encoding="utf-8") as f_js:
@@ -384,13 +724,13 @@ if __name__ == '__main__':
                             bg_img = get_base64_image(os.path.join(art_folder, "background.jpg"))
                             tgt_img = get_base64_image(os.path.join(art_folder, "target_ship.png"))
                             a1_img = get_base64_image(os.path.join(art_folder, "attacker1.png"))
-                            a2_img = "" # No Wingman
+                            a2_img = get_base64_image(os.path.join(art_folder, "attacker2.png"))
                                 
                             data_script = f"""
                             <script>
                                 const SIM_DATA = {{
                                     frames: {json_frames},
-                                    initialDistance: {t1_dist},
+                                    initialDistance: {t3_dist},
                                     shieldFaces: {int(shield_faces_val)},
                                     images: {{
                                         bg: {json.dumps(bg_img)},
@@ -404,386 +744,110 @@ if __name__ == '__main__':
                             
                             logic_script = f"<script>\n{js_logic}\n</script>"
                             final_html = html_template.replace("__CANVAS_W__", str(canvas_w)) \
-                                                      .replace("__DATA_INJECTION__", data_script) \
-                                                      .replace("__JS_INJECTION__", logic_script)
-                                                      
+                                                    .replace("__DATA_INJECTION__", data_script) \
+                                                    .replace("__JS_INJECTION__", logic_script)
+                                                    
                             components.html(final_html, height=650, scrolling=True)
 
-                            # --- RENDER COMBAT TELEMETRY LOG ---
+                            # --- NEW: RENDER COMBAT TELEMETRY LOG ---
+                            st.divider()
                             st.subheader("📡 Combat Telemetry Log")
+                            st.markdown("*(Real-time mathematical milestones tracking deflection, penetration, and component damage)*")
+                            
                             for entry in combat_log:
                                 st.markdown(f"<span style='color: {entry['color']}; font-family: monospace; font-size: 1rem;'><b>[{entry['t']:.2f}s]</b> - {entry['msg']}</span>", unsafe_allow_html=True)
                                 
                         except FileNotFoundError as e:
                             st.error(f"Error loading visualizer files: {e}")
 
-    # === TAB 2: PENETRATION SANDBOX ===
-    with tab_sandbox:
-        col_t2_setup, col_t2_main = st.columns([1, 4], gap="large")
-        
-        with col_t2_setup:
-            st.subheader("⚙️ Match Setup")
-            t2_target = st.selectbox("Target Ship", defender_options, index=defender_options.index("Arrow") if "Arrow" in defender_options else 0, key="t2_tgt")
-            t2_shield, t2_pp = render_target_components("t2", t2_target, db)
-            
-            st.button("↺ Reset Defaults", key="rst_t2", use_container_width=True, on_click=reset_tab_defaults, args=("t2", "t2_tgt"))
-
-            st.divider()
-            st.subheader("Test Parameters")
-            sandbox_weapon_name = st.selectbox("Detail Test Weapon", sorted(list(db.weapons.keys())))
-            sandbox_shield_pct = st.slider("Current Shield %", 0.0, 100.0, 100.0, step=1.0)
-            sandbox_armor_pct = st.slider("Current Armor %", 0.0, 100.0, 100.0, step=1.0)
-            t2_attacker = st.selectbox("Attacker Ship (For Fleet Chart)", attacker_options, index=attacker_options.index("F7A Hornet Mk II") if "F7A Hornet Mk II" in attacker_options else 0, key="t2_atk")
-
-        with col_t2_main:
-            st.header("Interactive Penetration Sandbox")
-            st.write("Adjust the target's remaining Shield and Armor % on the left to visualize exactly when weapons will overcome deflection and breach the Power Plant depth.")
-            
-            sb_target = DefenderLoadout(t2_target, db, None if t2_pp == "Default" else t2_pp)
-            sb_target.equip_shields(None if t2_shield == "None" else t2_shield, db)
-            
-            sb_weapon = Weapon(db.weapons[sandbox_weapon_name], 1.0, 1.0)
-            
-            if sb_weapon.damage_type == 'distortion':
-                st.warning("Distortion weapons bypass physical geometry completely and attack the shield generator directly.")
-            else:
-                shield_ratio = sandbox_shield_pct / 100.0
-                d_active = sb_weapon.alpha_damage * (1.0 - sb_target.shield_resist.get(sb_weapon.damage_type, 0.0))
-                
-                if shield_ratio > 0 and sb_target.max_shield_hp > 0:
-                    abs_min = sb_target.shield_absorp_min[sb_weapon.damage_type]
-                    abs_max = sb_target.shield_absorp_max[sb_weapon.damage_type]
-                    absorp_current = abs_min + (abs_max - abs_min) * shield_ratio
-                    d_pass = d_active * (1.0 - absorp_current)
-                else:
-                    d_pass = d_active
-                    
-                current_armor_ratio = sandbox_armor_pct / 100.0
-                current_deflection = sb_target.deflection.get(sb_weapon.damage_type, 0.0) * current_armor_ratio
-                
-                scale = 1.0 - current_armor_ratio
-                current_pen_depth = sb_weapon.max_pen * scale
-                pp_target_depth = sb_target.pp_depth
-                
-                bites_armor = d_pass >= current_deflection
-                strikes_pp = current_pen_depth >= pp_target_depth
-                
-                col_res1, col_res2 = st.columns(2)
-                with col_res1:
-                    st.metric(f"{DataTransformer.clean_weapon_name(sandbox_weapon_name)} vs Deflection", 
-                              f"{d_pass:.1f} dmg vs {current_deflection:.1f} defl", 
-                              "Deflected" if not bites_armor else "Bites Armor",
-                              delta_color="inverse" if not bites_armor else "normal")
-                with col_res2:
-                    st.metric("Penetration vs PP Depth", 
-                              f"{current_pen_depth:.2f}m / {pp_target_depth:.2f}m",
-                              "Sniped" if strikes_pp else "Too Shallow",
-                          delta_color="normal" if strikes_pp else "inverse")
-                    
-                st.markdown("### Individual Depth Visualizer")
-                
-                visual_max = max(sb_weapon.max_pen, pp_target_depth) * 1.1
-                if visual_max == 0: visual_max = 1.0
-                
-                pen_fill_pct = (current_pen_depth / visual_max) * 100.0
-                pp_marker_pct = (pp_target_depth / visual_max) * 100.0
-                bar_color = "#00cc44" if strikes_pp else "#0088ff"
-                
-                custom_html = f"""
-                <div style="width: 100%; max-width: 800px; background-color: #2b2b36; height: 40px; position: relative; border-radius: 5px; overflow: hidden; border: 1px solid #555;">
-                   <div style="position: absolute; left: 0; top: 0; height: 100%; width: {pen_fill_pct}%; background-color: {bar_color}; border-radius: 5px 0 0 5px; transition: width 0.3s ease;"></div>
-                   <div style="position: absolute; left: {pp_marker_pct}%; top: 0; height: 100%; width: 4px; background-color: #ff3333; z-index: 10;"></div>
-                </div>
-                <div style="display: flex; justify-content: space-between; max-width: 800px; font-size: 12px; color: #aaa; margin-top: 5px;">
-                    <span>0m (Hull Exterior)</span>
-                    <span>Power Plant Depth: <span style="color: #ff3333; font-weight: bold;">{pp_target_depth:.2f}m</span></span>
-                    <span>Max Visual Depth: {visual_max:.1f}m</span>
-                </div>
-                """
-                st.markdown(custom_html, unsafe_allow_html=True)
-                
-                if strikes_pp:
-                    st.success(f"💥 At {sandbox_armor_pct}% Armor, the {DataTransformer.clean_weapon_name(sandbox_weapon_name)} breaches {current_pen_depth:.2f}m deep, successfully striking the Power Plant.")
-                else:
-                    st.warning(f"🛡️ At {sandbox_armor_pct}% Armor, the {DataTransformer.clean_weapon_name(sandbox_weapon_name)} only penetrates {current_pen_depth:.2f}m. You must lower the armor further to reach the {pp_target_depth:.2f}m target.")
-    
-            st.divider()
-            st.markdown(f"### Fleet-Wide Penetration Potential for {t2_attacker}")
-            
-            attacker_sizes = set(db.ship_configs[t2_attacker].get('hardpoints', []))
-            chart_data = []
-            
-            for w_name, w_data in db.weapons.items():
-                w = Weapon(w_data, 1.0, 1.0)
-                if w.size not in attacker_sizes: continue
-                if w.damage_type == 'distortion': continue 
-                
-                c_d_active = w.alpha_damage * (1.0 - sb_target.shield_resist.get(w.damage_type, 0.0))
-                if shield_ratio > 0 and sb_target.max_shield_hp > 0:
-                    c_abs_min = sb_target.shield_absorp_min[w.damage_type]
-                    c_abs_max = sb_target.shield_absorp_max[w.damage_type]
-                    c_absorp_current = c_abs_min + (c_abs_max - c_abs_min) * shield_ratio
-                    c_d_pass = c_d_active * (1.0 - c_absorp_current)
-                else:
-                    c_d_pass = c_d_active
-                    
-                c_current_deflection = sb_target.deflection.get(w.damage_type, 0.0) * current_armor_ratio
-                c_bites_armor = c_d_pass >= c_current_deflection
-                c_current_pen = (w.max_pen * scale) if c_bites_armor else 0.0
-                
-                chart_data.append({
-                    "Weapon": DataTransformer.clean_weapon_name(w_name),
-                    "Current Pen (m)": round(c_current_pen, 2),
-                    "Type": w.damage_type.capitalize(),
-                    "Bites Armor": c_bites_armor
-                })
-                
-            chart_df = pd.DataFrame(chart_data)
-            if not chart_df.empty:
-                base = alt.Chart(chart_df).encode(
-                    y=alt.Y('Weapon:N', sort='-x', title=None)
-                )
-                bars = base.mark_bar().encode(
-                    x=alt.X('Current Pen (m):Q', title=f'Current Penetration Depth at {sandbox_armor_pct}% Armor'),
-                    color=alt.Color('Type:N', scale=alt.Scale(domain=['Ballistic', 'Energy'], range=['#ffaa00', '#00ffff'])),
-                    tooltip=['Weapon', 'Type', 'Current Pen (m)', 'Bites Armor']
-                )
-                rule = alt.Chart(pd.DataFrame({'x': [pp_target_depth]})).mark_rule(color='#ff3333', strokeWidth=3, strokeDash=[5, 5]).encode(x='x:Q')
-                st.altair_chart((bars + rule).properties(height=max(150, len(chart_df)*30)), use_container_width=True)
-
-    # === TAB 3: COMBAT VISUALIZER (FLEET MODE) ===
-    with tab_visualizer:
-        col_t3_setup, col_t3_main = st.columns([1, 4], gap="large")
-        
-        with col_t3_setup:
-            st.subheader("⚙️ Match Setup")
-            t3_target = st.selectbox("Target Ship", defender_options, index=defender_options.index("Arrow") if "Arrow" in defender_options else 0, key="t3_tgt")
-            
-            t3_shield, t3_pp = render_target_components("t3", t3_target, db)
-            t3_dist = st.number_input("Engagement Distance (m)", value=500.0, step=100.0, key="t3_dst")
-            
-            run_render = st.button("🎬 Generate Battle Render", type="primary", use_container_width=True)
-            st.button("↺ Reset Target", key="rst_t3", use_container_width=True, on_click=reset_tab_defaults, args=("t3", "t3_tgt"))
-            
-            st.divider()
-            
-            # --- ATTACKER 1 (LEAD) ---
-            st.markdown("### 🟢 Attacker 1 (Lead)")
-            
-            # --- NEW: TOURNAMENT HANDOFF LOGIC (TOP 10) ---
-            if 'tournament_results' in st.session_state and st.session_state.tournament_results:
-                tourney_data = st.session_state.tournament_results
-                st.info(f"🏆 Recent Tournament: **{tourney_data[0]['attacker']}** vs **{tourney_data[0]['target']}**")
-                
-                # Create a dictionary to map the dropdown strings to the actual data dictionaries
-                dropdown_options = {f"Rank {d['rank']}: {d['desc']} ({d['ttk']})": d for d in tourney_data}
-                
-                # Render the dropdown
-                selected_tourney_string = st.selectbox(
-                    "Select a Loadout to Visualize:", 
-                    list(dropdown_options.keys()), 
-                    key="t3_tourney_select"
-                )
-                
-                def load_selected_callback():
-                    # Grab the data tied to the user's current dropdown selection
-                    sel_data = dropdown_options[st.session_state.t3_tourney_select]
-                    
-                    # Force the UI to match the winning ship
-                    st.session_state['t3_atk1'] = sel_data['attacker']
-                    st.session_state['t3_tgt'] = sel_data['target']
-                    st.session_state['t3_frc1'] = False # Disable forced identical groups
-                    
-                    # Map the winning loadout back into the individual slot keys
-                    hp_list = db.ship_configs[sel_data['attacker']]['hardpoints']
-                    for i, hp_size in enumerate(hp_list):
-                        if i < len(sel_data['loadout']):
-                            st.session_state[f"vis_hp1_{i}"] = sel_data['loadout'][i]
-
-                st.button("⏬ Auto-Load Selected Loadout", on_click=load_selected_callback, type="primary", use_container_width=True)
-            # --- END HANDOFF LOGIC ---
-
-            t3_attacker_1 = st.selectbox("Ship", attacker_options, index=attacker_options.index("F7A Hornet Mk II") if "F7A Hornet Mk II" in attacker_options else 0, key="t3_atk1")
-            t3_trigger_1 = st.selectbox("Trigger Logic (A1)", ["Benchmark", "Human", "AI"], help=trigger_help, key="t3_trig1")
-            t3_angle_1 = st.selectbox("Attack Angle (A1)", ["Front", "Right", "Rear", "Left"], key="t3_ang1")
-            t3_force_1 = st.checkbox("Force Identical Weapons (A1)", value=True, key="t3_frc1")
-            
-            a1_ammo_mod = db.ship_configs[t3_attacker_1].get('max_ammo_mod', 1.0)
-            a1_regen_mod = db.ship_configs[t3_attacker_1].get('max_regen_sec_mod', 1.0)
-            attacker_hp_1 = db.ship_configs[t3_attacker_1]['hardpoints']
-            selected_weapons_1 = []
-            
-            if t3_force_1:
-                hp_counts_1 = collections.Counter(attacker_hp_1)
-                for hp_size, count in sorted(hp_counts_1.items(), reverse=True):
-                    valid_w = [w for w, d in db.weapons.items() if hp_size - 1 <= DataTransformer.get_num(d.get('Weapon_Size')) <= hp_size]
-                    default_idx = valid_w.index("Panther Repeater") if valid_w and "Panther Repeater" in valid_w and hp_size >= 3 else 0
-                    w_choice = st.selectbox(f"{count}x Size {hp_size} Mounts", sorted(valid_w), index=default_idx, key=f"vis_hp1_grp_{hp_size}")
-                    selected_weapons_1.extend([w_choice] * count) 
-            else:
-                for i, hp_size in enumerate(attacker_hp_1):
-                    valid_w = [w for w, d in db.weapons.items() if hp_size - 1 <= DataTransformer.get_num(d.get('Weapon_Size')) <= hp_size]
-                    default_idx = valid_w.index("Panther Repeater") if valid_w and "Panther Repeater" in valid_w and hp_size >= 3 else 0
-                    w_choice = st.selectbox(f"Slot {i+1} (S{hp_size})", sorted(valid_w), index=default_idx, key=f"vis_hp1_{i}")
-                    selected_weapons_1.append(w_choice)
-
-            st.divider()
-
-            # --- ATTACKER 2 (WINGMAN) ---
-            st.markdown("### 🔵 Attacker 2 (Wingman)")
-            attacker_options_with_none = ["None"] + attacker_options
-            t3_attacker_2 = st.selectbox("Ship", attacker_options_with_none, index=0, key="t3_atk2")
-            
-            selected_weapons_2 = []
-            if t3_attacker_2 != "None":
-                t3_trigger_2 = st.selectbox("Trigger Logic (A2)", ["Benchmark", "Human", "AI"], help=trigger_help, key="t3_trig2")
-                t3_angle_2 = st.selectbox("Attack Angle (A2)", ["Front", "Right", "Rear", "Left"], index=1, key="t3_ang2")
-                t3_force_2 = st.checkbox("Force Identical Weapons (A2)", value=True, key="t3_frc2")
-                
-                a2_ammo_mod = db.ship_configs[t3_attacker_2].get('max_ammo_mod', 1.0)
-                a2_regen_mod = db.ship_configs[t3_attacker_2].get('max_regen_sec_mod', 1.0)
-                attacker_hp_2 = db.ship_configs[t3_attacker_2]['hardpoints']
-                if t3_force_2:
-                    hp_counts_2 = collections.Counter(attacker_hp_2)
-                    for hp_size, count in sorted(hp_counts_2.items(), reverse=True):
-                        valid_w = [w for w, d in db.weapons.items() if hp_size - 1 <= DataTransformer.get_num(d.get('Weapon_Size')) <= hp_size]
-                        default_idx = valid_w.index("Panther Repeater") if valid_w and "Panther Repeater" in valid_w and hp_size >= 3 else 0
-                        w_choice = st.selectbox(f"{count}x Size {hp_size} Mounts", sorted(valid_w), index=default_idx, key=f"vis_hp2_grp_{hp_size}")
-                        selected_weapons_2.extend([w_choice] * count) 
-                else:
-                    for i, hp_size in enumerate(attacker_hp_2):
-                        valid_w = [w for w, d in db.weapons.items() if hp_size - 1 <= DataTransformer.get_num(d.get('Weapon_Size')) <= hp_size]
-                        default_idx = valid_w.index("Panther Repeater") if valid_w and "Panther Repeater" in valid_w and hp_size >= 3 else 0
-                        w_choice = st.selectbox(f"Slot {i+1} (S{hp_size})", sorted(valid_w), index=default_idx, key=f"vis_hp2_{i}")
-                        selected_weapons_2.append(w_choice)
-            else:
-                t3_trigger_2 = "Benchmark"
-                t3_angle_2 = 'Front'
-
-        with col_t3_main:
-            st.header("Interactive Combat Playback")
-            if run_render:
-                actual_pp = None if t3_pp == "Default" else t3_pp
-                actual_shield = None if t3_shield == "None" else t3_shield
-                
-                vis_target = DefenderLoadout(t3_target, db, actual_pp)
-                vis_target.equip_shields(actual_shield, db)
-                shield_faces_val = getattr(vis_target, 'shield_faces', 1.0)
-                
-                vis_weapons_1 = [Weapon(db.weapons[w], a1_ammo_mod, a1_regen_mod) for w in selected_weapons_1]
-                vis_weapons_2 = [Weapon(db.weapons[w], a2_ammo_mod, a2_regen_mod) for w in selected_weapons_2] if t3_attacker_2 != "None" else []
-                
-                with st.spinner("Rendering Physics..."):
-                    # Unpack the 4 variables now
-                    frames, final_ttk, death_reason, combat_log = simulate_visual_fight(
-                        vis_weapons_1, vis_weapons_2, vis_target, 
-                        engagement_distance=t3_dist, 
-                        trigger_1=t3_trigger_1,
-                        trigger_2=t3_trigger_2,
-                        angle_1=t3_angle_1,
-                        angle_2=t3_angle_2,
-                        db=db
-                    )
-                    
-                if len(frames) == 0:
-                    st.error("Simulation failed to generate frames.")
-                else:
-                    st.success(f"Render Complete! TTK: {final_ttk:.2f}s ({death_reason})")
-                    
-                    json_frames = json.dumps(frames)
-                    canvas_w = 1100 if t3_attacker_2 != "None" else 900
-                    
-                    try:
-                        # 1. Load Templates
-                        with open("visualizer.html", "r", encoding="utf-8") as f_html:
-                            html_template = f_html.read()
-                        with open("visualizer.js", "r", encoding="utf-8") as f_js:
-                            js_logic = f_js.read()
-                            
-                        # Load custom images safely
-                        art_folder = os.path.join("Art", "Ship Art")
-                        bg_img = get_base64_image(os.path.join(art_folder, "background.jpg"))
-                        tgt_img = get_base64_image(os.path.join(art_folder, "target_ship.png"))
-                        a1_img = get_base64_image(os.path.join(art_folder, "attacker1.png"))
-                        a2_img = get_base64_image(os.path.join(art_folder, "attacker2.png"))
-                            
-                        data_script = f"""
-                        <script>
-                            const SIM_DATA = {{
-                                frames: {json_frames},
-                                initialDistance: {t3_dist},
-                                shieldFaces: {int(shield_faces_val)},
-                                images: {{
-                                    bg: {json.dumps(bg_img)},
-                                    target: {json.dumps(tgt_img)},
-                                    a1: {json.dumps(a1_img)},
-                                    a2: {json.dumps(a2_img)}
-                                }}
-                            }};
-                        </script>
-                        """
-                        
-                        logic_script = f"<script>\n{js_logic}\n</script>"
-                        final_html = html_template.replace("__CANVAS_W__", str(canvas_w)) \
-                                                  .replace("__DATA_INJECTION__", data_script) \
-                                                  .replace("__JS_INJECTION__", logic_script)
-                                                  
-                        components.html(final_html, height=650, scrolling=True)
-
-                        # --- NEW: RENDER COMBAT TELEMETRY LOG ---
-                        st.divider()
-                        st.subheader("📡 Combat Telemetry Log")
-                        st.markdown("*(Real-time mathematical milestones tracking deflection, penetration, and component damage)*")
-                        
-                        for entry in combat_log:
-                            st.markdown(f"<span style='color: {entry['color']}; font-family: monospace; font-size: 1rem;'><b>[{entry['t']:.2f}s]</b> - {entry['msg']}</span>", unsafe_allow_html=True)
-                            
-                    except FileNotFoundError as e:
-                        st.error(f"Error loading visualizer files: {e}")
-
     # === TAB 4: DRAG RACER ===
-    with tab_tools:
-        st.header("Flight & Analysis Tools")
+    if "🚀 Drag Racer" in tab_dict:
+        with tab_dict["🚀 Drag Racer"]:
+            col_t4_setup, col_t4_main = st.columns([1, 4], gap="large")
         
-        # Create a 2-column layout for the side-menu and the main tool area
-        # A ratio of [1, 4] means the menu takes 20% of the screen, the tool takes 80%
-        col_menu, col_tool = st.columns([1, 4])
-        
-        with col_menu:
-            st.subheader("Select Tool")
-            selected_tool = st.radio("Available Tools", ["Drag Race Simulator", "Coming Soon..."], label_visibility="collapsed")
+            # Create a 2-column layout for the side-menu and the main tool area
+            # A ratio of [1, 4] means the menu takes 20% of the screen, the tool takes 80%
+            col_menu, col_tool = st.columns([1, 4])
             
-            if selected_tool == "Drag Race Simulator":
-                st.divider()
-                st.subheader("Race Settings")
+            with col_menu:
+                st.subheader("Select Tool")
+                selected_tool = st.radio("Available Tools", ["Drag Race Simulator"], label_visibility="collapsed")
                 
-                # Flight Mode Toggle
-                flight_mode = st.radio("Flight Mode", ["SCM", "Boosted SCM", "NAV"])
-                
-                # Max Time Slider (Determines how long the JS array needs to be)
-                sim_time = st.slider("Simulation Length (s)", min_value=10, max_value=120, value=30, step=10)
-                
-                st.divider()
-                st.subheader("Select Ships")
-                
-                # Generate checkboxes for all available ships in the flight data
-                available_ships = sorted(list(db.flight_data.keys()))
-                selected_ships = []
-                
-                # For phase 3, we just list them. In phase 4 we will categorize them!
-                for ship in available_ships:
-                    if st.checkbox(ship, key=f"drag_race_{ship}"):
-                        selected_ships.append(ship)
-        
-        with col_tool:
-            if selected_tool == "Drag Race Simulator":
-                st.subheader("Kinematics & Drag Race Simulator")
-                
-                if not selected_ships:
-                    st.info("👈 Select at least one ship from the sidebar to begin the simulation.")
-                else:
-                    # Call our new visualizer!
-                    render_drag_race(db, selected_ships, mode=flight_mode, max_time=sim_time)
+                if selected_tool == "Drag Race Simulator":
+                    st.divider()
+                    st.subheader("Race Settings")
                     
-            elif selected_tool == "Coming Soon...":
-                st.write("Future tools will be placed here.")
+                    # Flight Mode Toggle
+                    flight_mode = st.radio("Flight Mode", ["SCM", "Boosted SCM", "NAV"])
+                    
+                    # Max Time Slider (Determines how long the JS array needs to be)
+                    sim_time = st.slider("Simulation Length (s)", min_value=10, max_value=120, value=30, step=10)
+
+                    st.subheader("Select Ships & Power Allocation")
+                    
+                    available_ships = sorted(list(db.flight_data.keys()))
+                    selected_ships = []
+                    engine_allocations = {}
+                    
+                    for ship in available_ships:
+                        col1, col2 = st.columns([1, 2])
+                        
+                        with col1:
+                            # Checkbox to select the ship
+                            is_selected = st.checkbox(ship, key=f"drag_race_{ship}")
+                            
+                        with col2:
+                            if is_selected:
+                                selected_ships.append(ship)
+                                
+                                # Fetch this specific ship's max segments (fallback to 4 if missing)
+                                ship_data = db.flight_data.get(ship, {})
+                                max_segs = int(ship_data.get('available_segments', 4))
+                                if max_segs <= 0: max_segs = 4 
+                                
+                                # Render horizontal visual "Tick Bars" just for this ship
+                                alloc = st.radio(
+                                    f"⚡ Engine Power", 
+                                    options=list(range(max_segs + 1)), 
+                                    index=max_segs, 
+                                    horizontal=True,
+                                    key=f"power_{ship}",
+                                    label_visibility="collapsed"
+                                )
+                                engine_allocations[ship] = alloc
+
+                    st.divider()
+            
+            with col_tool:
+                if selected_tool == "Drag Race Simulator":
+                    st.subheader("Kinematics & Drag Race Simulator")
+                    
+                    if not selected_ships:
+                        st.info("👈 Select at least one ship from the sidebar to begin the simulation.")
+                    else:
+                        # Call our new visualizer!
+                        render_drag_race(db, selected_ships, mode=flight_mode, max_time=sim_time, allocations=engine_allocations)
+                        
+                elif selected_tool == "Coming Soon...":
+                    st.write("Future tools will be placed here.")
+
+    # === TAB 5: AIM TRAINER PoC ===
+    if "🎯 Aim Trainer (PoC)" in tab_dict:
+        with tab_dict["🎯 Aim Trainer (PoC)"]:
+            st.header("6DOF Combat Sandbox (Gladius vs Gladius)")
+            
+            # A quick instruction banner for the user
+            st.info("""
+            **Controls:**
+            * **Click the screen** to lock your mouse. (Press **ESC** to unlock).
+            * **Mouse:** Pitch & Yaw
+            * **W / S:** Forward / Reverse Thrust
+            * **A / D:** Lateral Strafe
+            * **Space / Ctrl:** Vertical Strafe
+            * **Q / E:** Roll
+            * **Shift:** IFCS Boost
+            * **Left Click:** Fire Weapons (Watch your capacitor!)
+            """)
+            
+            # Call the bridged Python function to render the HTML/JS file
+            render_aim_trainer_poc()

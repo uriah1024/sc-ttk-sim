@@ -96,6 +96,7 @@ class GameDatabase:
     def _load_flight_configs(self, filepath):
         configs = {}
         if not os.path.exists(filepath): return configs
+        print(f"Loading flight configs from {filepath}")
         
         with open(filepath, mode='r', encoding='utf-8-sig') as f:
             reader = csv.DictReader(f)
@@ -105,19 +106,36 @@ class GameDatabase:
             for row in reader:
                 name = str(row.get('Ship', '')).strip()
                 
-                # Skip blank names or invalid entries
                 if not name or name == 'nan': 
                     continue
                 
-                # We only need the first row per ship if there are duplicates
                 if name not in configs:
                     configs[name] = {
+                        # --- DYNAMIC CAPACITOR DATA ---
+                        'cap_size': DataTransformer.get_num(row.get('Boost_Capacitor_Size')),
+                        'cap_regen_tick': DataTransformer.get_num(row.get('Boost_Capacitor_Regen_Tick')),
+                        'cap_threshold_ratio': DataTransformer.get_num(row.get('Boost_Capacitor_Threshold_Ratio')),
+                        'available_segments': DataTransformer.get_num(row.get('Boost_Available_Segments_Resource'), is_int=True),
+                        'idle_cost': DataTransformer.get_num(row.get('Idle_Cost')),
+                        'boost_tuning': str(row.get('Boost_Tuning', 'empty')).strip().lower(),
+
+                        # --- SPEED & THRUST ---
                         'scm_speed': DataTransformer.get_num(row.get('SCM')),
                         'nav_speed': DataTransformer.get_num(row.get('NAV')),
+                        'boost_speed': DataTransformer.get_num(row.get('SCM_Boost_Forward')),
+                        
                         'base_accel_g': DataTransformer.get_num(row.get('Main')),
                         'boost_accel_mult': DataTransformer.get_num(row.get('Boost_Main', 1.0)),
-                        # Temporary default until we calculate exact capacitor drain
-                        'boost_burn_time': 5.0 
+                        'boost_burn_time': DataTransformer.get_num(row.get('Boost_Duration', 20.0)),
+                        
+                        # --- STATE MACHINE DELAYS ---
+                        'pre_delay': DataTransformer.get_num(row.get('Boost_Activation_Pre_Delay', 0.15)),
+                        'ramp_up': DataTransformer.get_num(row.get('Boost_Activation_Ramp_Up', 0.5)),
+                        'ramp_down': DataTransformer.get_num(row.get('Boost_Activation_Ramp_Down', 0.5)),
+                        'regen_delay': DataTransformer.get_num(row.get('Boost_Capacitor_Regen_Delay', 1.5)),
+                        
+                        # --- IFCS DRAG ---
+                        'drag_multiplier': DataTransformer.get_num(row.get('Drag_Multiplier', 0.8))
                     }
         return configs
 

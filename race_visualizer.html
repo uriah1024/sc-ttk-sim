@@ -2,25 +2,65 @@
 <html>
 <head>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: transparent; color: white; margin: 0; padding: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0e1117; color: #fafafa; margin: 0; padding: 15px; border-radius: 8px;}
         .controls { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; }
+        #playBtn { background-color: #4facfe; color: white; border: none; padding: 8px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 80px;}
+        #playBtn:hover { background-color: #00f2fe; color: black; }
         #timeSlider { flex-grow: 1; cursor: pointer; }
-        .time-display { font-size: 1.2em; font-weight: bold; font-family: monospace; min-width: 80px; text-align: right; }
-        .track-container { display: flex; flex-direction: column; gap: 10px; }
-        .lane { position: relative; height: 60px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; display: flex; align-items: center; padding-left: 10px; }
+        .time-display { font-size: 1.2em; font-weight: bold; font-family: monospace; min-width: 80px; text-align: right; color: #4facfe; }
+        .track-container { display: flex; flex-direction: column; gap: 12px; }
+        
+        /* Split Layout */
+        .lane { display: flex; height: 70px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; }
+        
+        /* Static HUD on the Left */
+        .hud-panel { width: 220px; flex-shrink: 0; background: rgba(0,0,0,0.4); border-right: 2px solid #2a5298; display: flex; flex-direction: column; justify-content: center; padding: 0 15px; }
+        .ship-label { font-weight: bold; text-shadow: 1px 1px 2px black; letter-spacing: 0.5px; font-size: 1.05em; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stats-label { font-family: monospace; font-size: 0.85em; color: #a8c0ff; text-shadow: 1px 1px 2px black; margin-bottom: 4px; }
+        
+        /* Boost Bar inside HUD */
+        .boost-wrapper { display: flex; align-items: center; gap: 6px; }
+        .boost-container { flex-grow: 1; height: 6px; background: rgba(0,0,0,0.8); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .boost-fill { height: 100%; background: #00ffcc; width: 100%; transition: width 0.1s linear, background 0.2s; }
+        .boost-icon { font-size: 10px; opacity: 1; transition: opacity 0.2s; }
+
+        /* Dynamic Track on the Right */
+        .track-panel { flex-grow: 1; position: relative; overflow: hidden; }
         .lane-bg-lines { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 10% 100%; pointer-events: none; }
-        .ship-marker { position: absolute; top: 10px; height: 40px; background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); border-left: 3px solid #4facfe; box-shadow: 0 0 10px rgba(79, 172, 254, 0.5); border-radius: 0 20px 20px 0; transition: left 0.05s linear, width 0.05s linear; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; white-space: nowrap; overflow: hidden; }
-        .ship-label { z-index: 2; font-weight: bold; text-shadow: 1px 1px 2px black; }
-        .stats-label { z-index: 2; font-family: monospace; font-size: 0.9em; color: #a8c0ff; margin-left: 10px; text-shadow: 1px 1px 2px black; }
+        
+        /* NEW: A physical Start Line to anchor your eyes! */
+        .start-line { position: absolute; top: 0; bottom: 0; left: 10%; border-left: 2px dashed #ff4b4b; z-index: 1; opacity: 0.5; }
+
+        /* NEW: A glowing Finish Line at the end of the track! */
+        .finish-line { position: absolute; top: 0; bottom: 0; left: 95%; border-left: 3px solid #00ffcc; box-shadow: -2px 0 10px rgba(0, 255, 204, 0.5); z-index: 1; opacity: 0.7; }
+
+        /* The Moving Ship Container - Now shrunk to a single 0x0 point on the track */
+        .ship-marker { position: absolute; top: 50%; width: 0; height: 0; transition: left 0.1s linear; z-index: 5; }
+        
+        /* Anchors the Top-Center (Nose) of the image perfectly to the 0x0 marker point */
+        .ship-icon-img { 
+            position: absolute; 
+            height: 60px; /* Adjust the visual length of your ships here */
+            width: auto; 
+            top: 0; 
+            left: 0; 
+            transform-origin: top center; 
+            /* This translates the nose back to 0,0, then rotates it 90 degrees right! */
+            transform: translate(-50%, 0) rotate(90deg); 
+            filter: drop-shadow(0 0 5px rgba(79, 172, 254, 0.8)); 
+        }
+        
+        #debug { color: #ff4b4b; font-family: monospace; margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="controls">
-        <label for="timeSlider">Time (Seconds):</label>
+        <button id="playBtn">Play</button>
+        <label for="timeSlider" style="font-weight: bold;">Time (s):</label>
         <input type="range" id="timeSlider" min="0" step="0.1" value="0">
         <div class="time-display" id="timeDisplay">0.0s</div>
     </div>
     <div class="track-container" id="tracks"></div>
-
-    </body>
+    <div id="debug"></div>
+</body>
 </html>
