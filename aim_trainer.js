@@ -29,19 +29,27 @@ const espBubble = document.getElementById('esp-bubble');
 const tetherLine = document.getElementById('tether-line');
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x000000, 0.0002);
+scene.fog = new THREE.FogExp2(0x000000, 0.0001); // Thinner fog for deeper space
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / 750, 0.1, 10000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / 750, 0.1, 50000); // Expanded render distance
 camera.rotation.order = 'YXZ'; 
 const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
 renderer.setSize(window.innerWidth, 750);
+
+// --- Handle Window Resizing ---
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / 750;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, 750);
+});
 
 // --- 3. ENVIRONMENT ---
 const starGeo = new THREE.BufferGeometry();
 const starMat = new THREE.PointsMaterial({color: 0xaaaaaa, size: 2});
 const starVerts = [];
-for(let i=0; i<2000; i++) {
-    starVerts.push((Math.random()-0.5)*5000, (Math.random()-0.5)*5000, (Math.random()-0.5)*5000);
+// Massively expanded starfield so you don't fly out of it
+for(let i=0; i<6000; i++) {
+    starVerts.push((Math.random()-0.5)*30000, (Math.random()-0.5)*30000, (Math.random()-0.5)*30000);
 }
 starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts, 3));
 scene.add(new THREE.Points(starGeo, starMat));
@@ -57,8 +65,13 @@ let clock = new THREE.Clock();
 let pitch = 0; let yaw = 0; let roll = 0;
 let playerVel = new THREE.Vector3(0,0,0);
 
-let targetPos = new THREE.Vector3(0, 0, -1000);
-let lastTargetPos = new THREE.Vector3(0, 0, -1000);
+// Pre-calculate exact spawn position to prevent 1st-frame velocity spikes
+let initialTargetX = Math.sin(0) * 600;
+let initialTargetY = Math.sin(0) * 200;
+let initialTargetZ = -1000 + Math.cos(0) * 400;
+
+let targetPos = new THREE.Vector3(initialTargetX, initialTargetY, initialTargetZ);
+let lastTargetPos = new THREE.Vector3(initialTargetX, initialTargetY, initialTargetZ);
 let targetVel = new THREE.Vector3(0,0,0);
 
 let projectiles = [];
@@ -81,9 +94,11 @@ canvas.addEventListener('mouseleave', () => {
     isMouseOverCanvas = false; 
     isFiring = false; 
     for (let k in keys) keys[k] = false;
-    // Reset Tether visual
-    tetherLine.setAttribute('x2', '50%');
-    tetherLine.setAttribute('y2', '50%');
+    // Reset Tether visual safely
+    if (tetherLine) {
+        tetherLine.setAttribute('x2', '50%');
+        tetherLine.setAttribute('y2', '50%');
+    }
 });
 
 canvas.addEventListener('mousemove', (e) => {
@@ -94,12 +109,12 @@ canvas.addEventListener('mousemove', (e) => {
     mouseX_ndc = (mouseX_px / rect.width) * 2 - 1;
     mouseY_ndc = -(mouseY_px / rect.height) * 2 + 1; 
 
-    // Move Crosshair
-    crosshairDiv.style.left = `${mouseX_px}px`;
-    crosshairDiv.style.top = `${mouseY_px}px`;
+    if (crosshairDiv) {
+        crosshairDiv.style.left = `${mouseX_px}px`;
+        crosshairDiv.style.top = `${mouseY_px}px`;
+    }
 
-    // Move Tether Line
-    if (isMouseOverCanvas) {
+    if (isMouseOverCanvas && tetherLine) {
         tetherLine.setAttribute('x2', mouseX_px);
         tetherLine.setAttribute('y2', mouseY_px);
     }
@@ -125,7 +140,11 @@ document.addEventListener('keyup', (e) => {
 function animate() {
     requestAnimationFrame(animate);
 
+    // Delta Time Safeguards
     let dt = clock.getDelta();
+    if (dt > 0.1) dt = 0.1; // Cap at 100ms so tabbing out doesn't explode physics
+    if (dt === 0) dt = 0.016; // Prevent divide-by-zero errors
+
     let now = clock.elapsedTime;
     let cx = canvas.width / 2;
     let cy = canvas.height / 2;
@@ -136,7 +155,11 @@ function animate() {
     targetPos.y = Math.sin(now * 1.1) * 200;
     targetPos.z = -1000 + Math.cos(now * 0.5) * 400;
     targetMesh.position.copy(targetPos);
+    
+    // Calculate Velocity cleanly
     targetVel.subVectors(targetPos, lastTargetPos).divideScalar(dt);
+    // Hard cap velocity to prevent extreme math spikes
+    if (targetVel.length() > SCM_SPEED * 5) targetVel.set(0,0,0);
 
     // B. Lead PIP Projection to 2D UI
     let relVel = targetVel.clone().sub(playerVel);
@@ -178,8 +201,11 @@ function animate() {
         let pipDefX = (pipX_px - cx) / cx;
         let pipDefY = (pipY_px - cy) / cy;
         
-        defX = defX * (1.0 - ESP_MAGNETISM) + (pipDefX * ESP_MAGNETISM);
-        defY = defY * (1.0 - ESP_MAGNETISM) + (pipDefY * ESP_MAGNETISM);
+        // Only apply magnetism if the PIP is within reasonable screen bounds
+        if (Math.abs(pipDefX) <= 1.0 && Math.abs(pipDefY) <= 1.0) {
+            defX = defX * (1.0 - ESP_MAGNETISM) + (pipDefX * ESP_MAGNETISM);
+            defY = defY * (1.0 - ESP_MAGNETISM) + (pipDefY * ESP_MAGNETISM);
+        }
 
         espBubble.style.borderColor = 'rgba(0, 255, 255, 0.6)'; // Highlight bubble
 
